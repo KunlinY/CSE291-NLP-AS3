@@ -143,6 +143,92 @@ public class GenerativeParserFactory implements ParserFactory {
 			return annotatedTrees;
 		}
 
+		private List<Tree<String>> annotateAndBinarizerTree(List<Tree<String>> trees) {
+			List<Tree<String>> annotatedTrees = new ArrayList();
+			Iterator var3 = trees.iterator();
+
+			while(var3.hasNext()) {
+				Tree<String> tree = (Tree)var3.next();
+				Tree<String> copy = tree.deepCopy();
+				copy = this.transformTree(copy, copy);
+				annotatedTrees.add(copy);
+			}
+
+			return annotatedTrees;
+		}
+
+		private Tree<String> transformTree(Tree<String> t, Tree<String> root) {
+			if (t == null) {
+				return null;
+			}
+			if (t.isLeaf()) {
+				return t;
+			}
+
+			String cat = t.getLabel();
+			Tree<String> parent;
+			String parentStr;
+			String grandParentStr;
+
+			if (root == null || treeEqual(t, root)) {
+				parent = null;
+				parentStr = "";
+			} else {
+				parent = getParent(t, root);
+				parentStr = parent.getLabel();
+			}
+
+			if (parent == null || treeEqual(parent, root)) {
+				grandParentStr = "";
+			} else {
+				grandParentStr = getParent(parent, root).getLabel();
+			}
+
+			if (t.isPreTerminal()) {
+
+			}
+		}
+
+		private Tree<String> getParent(Tree<String> t, Tree<String> parent) {
+			for (Tree<String> kid: parent.getChildren()) {
+				if (treeEqual(t, kid)) {
+					return parent;
+				}
+				Tree<String> ret = getParent(t, kid);
+				if (ret != null) {
+					return ret;
+				}
+			}
+			return null;
+		}
+
+		private boolean treeEqual(Tree<String> a, Tree<String> b) {
+			if (a == b) {
+				return true;
+			}
+
+			String aLabel = a.getLabel();
+			String bLabel = b.getLabel();
+			if (aLabel != null || bLabel != null) {
+				if (aLabel == null || bLabel == null || !aLabel.equals(bLabel)) {
+					return false;
+				}
+			}
+
+			List<Tree<String>> aChildren = a.getChildren();
+			List<Tree<String>> bChildren = b.getChildren();
+			if (aChildren.size() != bChildren.size()) {
+				return false;
+			}
+
+			for (int i = 0; i < aChildren.size(); i++) {
+				if (!treeEqual(aChildren.get(i), bChildren.get(i))) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 		private int tallySpans(Tree<String> tree, int start) {
 			if (!tree.isLeaf() && !tree.isPreTerminal()) {
 				int end = start;
