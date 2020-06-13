@@ -4,10 +4,7 @@ import edu.berkeley.nlp.assignments.parsing.*;
 import edu.berkeley.nlp.ling.Tree;
 import edu.berkeley.nlp.util.CounterMap;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class GenerativeParserFactory implements ParserFactory {
 	public GenerativeParserFactory() {
@@ -18,18 +15,12 @@ public class GenerativeParserFactory implements ParserFactory {
 	}
 
 	public static class GenerativeParser implements Parser {
-		CounterMap<List<String>, Tree<String>> knownParses;
 		CounterMap<Integer, String> spanToCategories;
 		SimpleLexicon lexicon;
 
 		public Tree<String> getBestParse(List<String> sentence) {
 			List<String> tags = this.getBaselineTagging(sentence);
-			Tree<String> annotatedBestParse = null;
-			if (this.knownParses.keySet().contains(tags)) {
-				annotatedBestParse = this.getBestKnownParse(tags);
-			} else {
-				annotatedBestParse = this.buildRightBranchParse(sentence, tags);
-			}
+			Tree<String> annotatedBestParse = this.buildRightBranchParse(sentence, tags);
 
 			return TreeAnnotations.unAnnotateTree(annotatedBestParse);
 		}
@@ -67,10 +58,6 @@ public class GenerativeParserFactory implements ParserFactory {
 			Tree<String> leafTree = new Tree(words.get(currentPosition));
 			Tree<String> tagTree = new Tree(tags.get(currentPosition), Collections.singletonList(leafTree));
 			return tagTree;
-		}
-
-		private Tree<String> getBestKnownParse(List<String> tags) {
-			return (Tree)this.knownParses.getCounter(tags).argMax();
 		}
 
 		private List<String> getBaselineTagging(List<String> sentence) {
@@ -117,14 +104,11 @@ public class GenerativeParserFactory implements ParserFactory {
 			System.out.println("done. (" + grammar.getLabelIndexer().size() + " states)");
 			System.out.print("Discarding grammar and setting up a baseline parser ... ");
 			this.lexicon = new SimpleLexicon(annotatedTrainTrees);
-			this.knownParses = new CounterMap();
 			this.spanToCategories = new CounterMap();
 			Iterator var4 = annotatedTrainTrees.iterator();
 
 			while(var4.hasNext()) {
 				Tree<String> trainTree = (Tree)var4.next();
-				List<String> tags = trainTree.getPreTerminalYield();
-				this.knownParses.incrementCount(tags, trainTree, 1.0D);
 				this.tallySpans(trainTree, 0);
 			}
 
@@ -134,99 +118,47 @@ public class GenerativeParserFactory implements ParserFactory {
 		private List<Tree<String>> annotateTrees(List<Tree<String>> trees) {
 			List<Tree<String>> annotatedTrees = new ArrayList();
 			Iterator var3 = trees.iterator();
+			TreeBinarizer binarizer = new TreeBinarizer();
 
 			while(var3.hasNext()) {
 				Tree<String> tree = (Tree)var3.next();
-				annotatedTrees.add(TreeAnnotations.annotateTreeLosslessBinarization(tree));
+				Tree<String> binarized = binarizer.transformTree(annotator(tree, ""));
+				annotatedTrees.add(binarized);
+//				annotatedTrees.add(TreeAnnotations.annotateTreeLosslessBinarization(tree));
 			}
 
 			return annotatedTrees;
 		}
 
-		private List<Tree<String>> annotateAndBinarizerTree(List<Tree<String>> trees) {
-			List<Tree<String>> annotatedTrees = new ArrayList();
-			Iterator var3 = trees.iterator();
+		private Tree<String> annotator(Tree<String> t, String parentStr) {
 
-			while(var3.hasNext()) {
-				Tree<String> tree = (Tree)var3.next();
-				Tree<String> copy = tree.deepCopy();
-				copy = this.transformTree(copy, copy);
-				annotatedTrees.add(copy);
-			}
-
-			return annotatedTrees;
-		}
-
-		private Tree<String> transformTree(Tree<String> t, Tree<String> root) {
-			if (t == null) {
-				return null;
-			}
-			if (t.isLeaf()) {
+			if (t.isLeaf() || t.isPreTerminal()) {
 				return t;
 			}
 
-			String cat = t.getLabel();
-			Tree<String> parent;
-			String parentStr;
-			String grandParentStr;
+			List<Tree<String>> children = new ArrayList();
+			String label = t.getLabel();
 
-			if (root == null || treeEqual(t, root)) {
-				parent = null;
-				parentStr = "";
-			} else {
-				parent = getParent(t, root);
-				parentStr = parent.getLabel();
+			// handle root
+			if (parentStr.length() != 0) {
+				t.setLabel(label + "^" + parentStr);
 			}
 
-			if (parent == null || treeEqual(parent, root)) {
-				grandParentStr = "";
-			} else {
-				grandParentStr = getParent(parent, root).getLabel();
+			for (Tree<String> tt: t.getChildren()) {
+				Tree<String> child = annotator(tt, label);
+				children.add(child);
 			}
 
-			if (t.isPreTerminal()) {
-
-			}
-		}
-
-		private Tree<String> getParent(Tree<String> t, Tree<String> parent) {
-			for (Tree<String> kid: parent.getChildren()) {
-				if (treeEqual(t, kid)) {
-					return parent;
-				}
-				Tree<String> ret = getParent(t, kid);
-				if (ret != null) {
-					return ret;
-				}
-			}
-			return null;
-		}
-
-		private boolean treeEqual(Tree<String> a, Tree<String> b) {
-			if (a == b) {
-				return true;
+			if (parentStr.length() == 0) {
+				children.add(
+						new Tree<String>(
+								".$$.",
+								new ArrayList<Tree<String>>(List.of(new Tree<String>(".$.")))
+						));
 			}
 
-			String aLabel = a.getLabel();
-			String bLabel = b.getLabel();
-			if (aLabel != null || bLabel != null) {
-				if (aLabel == null || bLabel == null || !aLabel.equals(bLabel)) {
-					return false;
-				}
-			}
-
-			List<Tree<String>> aChildren = a.getChildren();
-			List<Tree<String>> bChildren = b.getChildren();
-			if (aChildren.size() != bChildren.size()) {
-				return false;
-			}
-
-			for (int i = 0; i < aChildren.size(); i++) {
-				if (!treeEqual(aChildren.get(i), bChildren.get(i))) {
-					return false;
-				}
-			}
-			return true;
+			t.setChildren(children);
+			return t;
 		}
 
 		private int tallySpans(Tree<String> tree, int start) {
