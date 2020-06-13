@@ -17,8 +17,10 @@ public class GenerativeParserFactory implements ParserFactory {
 	public static class GenerativeParser implements Parser {
 		CounterMap<Integer, String> spanToCategories;
 		SimpleLexicon lexicon;
+		Grammar grammar;
 
 		public Tree<String> getBestParse(List<String> sentence) {
+
 			List<String> tags = this.getBaselineTagging(sentence);
 			Tree<String> annotatedBestParse = this.buildRightBranchParse(sentence, tags);
 
@@ -100,8 +102,8 @@ public class GenerativeParserFactory implements ParserFactory {
 			List<Tree<String>> annotatedTrainTrees = this.annotateTrees(trainTrees);
 			System.out.println("done.");
 			System.out.print("Building grammar ... ");
-			Grammar grammar = Grammar.generativeGrammarFromTrees(annotatedTrainTrees);
-			System.out.println("done. (" + grammar.getLabelIndexer().size() + " states)");
+			this.grammar = Grammar.generativeGrammarFromTrees(annotatedTrainTrees);
+			System.out.println("done. (" + this.grammar.getLabelIndexer().size() + " states)");
 			System.out.print("Discarding grammar and setting up a baseline parser ... ");
 			this.lexicon = new SimpleLexicon(annotatedTrainTrees);
 			this.spanToCategories = new CounterMap();
