@@ -1,10 +1,25 @@
 package edu.berkeley.nlp.assignments.parsing.student;
 
-import edu.berkeley.nlp.assignments.parsing.*;
+import edu.berkeley.nlp.assignments.parsing.Parser;
+import edu.berkeley.nlp.assignments.parsing.ParserFactory;
+import edu.berkeley.nlp.assignments.parsing.TreeAnnotations;
+import edu.berkeley.nlp.assignments.parsing.ling.CoreLabel;
+import edu.berkeley.nlp.assignments.parsing.ling.HasWord;
+import edu.berkeley.nlp.assignments.parsing.ling.Label;
+import edu.berkeley.nlp.assignments.parsing.parser.lexparser.*;
+import edu.berkeley.nlp.assignments.parsing.trees.LabeledScoredTreeFactory;
+import edu.berkeley.nlp.assignments.parsing.trees.LabeledScoredTreeNode;
+import edu.berkeley.nlp.assignments.parsing.trees.TreeTransformer;
+import edu.berkeley.nlp.assignments.parsing.util.HashIndex;
+import edu.berkeley.nlp.assignments.parsing.util.Index;
+import edu.berkeley.nlp.assignments.parsing.util.Pair;
 import edu.berkeley.nlp.ling.Tree;
 import edu.berkeley.nlp.util.CounterMap;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 public class GenerativeParserFactory implements ParserFactory {
 	public GenerativeParserFactory() {
@@ -16,106 +31,146 @@ public class GenerativeParserFactory implements ParserFactory {
 
 	public static class GenerativeParser implements Parser {
 		CounterMap<Integer, String> spanToCategories;
-		SimpleLexicon lexicon;
-		Grammar grammar;
+//		SimpleLexicon lexicon;
+//		Grammar grammar;
+		LabeledScoredTreeFactory lf = new LabeledScoredTreeFactory();
+		LexicalizedParser lp;
+		ExhaustivePCFGParser pparser;
+		TreeTransformer debinarizer = new Debinarizer(false);
+		TreeTransformer subcategoryStripper;
+		TreeAnnotatorAndBinarizer binarizer;
 
 		public Tree<String> getBestParse(List<String> sentence) {
-			int wordNum = sentence.size();
-
-			List<String> tags = this.getBaselineTagging(sentence);
-			Tree<String> annotatedBestParse = this.buildRightBranchParse(sentence, tags);
-
-			return TreeAnnotations.unAnnotateTree(annotatedBestParse);
-		}
-
-		private Tree<String> buildRightBranchParse(List<String> words, List<String> tags) {
-			int currentPosition = words.size() - 1;
-
-			Tree rightBranchTree;
-			for(rightBranchTree = this.buildTagTree(words, tags, currentPosition); currentPosition > 0; rightBranchTree = this.merge(this.buildTagTree(words, tags, currentPosition), rightBranchTree)) {
-				--currentPosition;
+			List<HasWord> sentenceB = new ArrayList<>();
+			for (String word : sentence) {
+				CoreLabel w = new CoreLabel();
+				w.setWord(word);
+				w.setValue(word);
+				sentenceB.add(w);
 			}
+			CoreLabel boundary = new CoreLabel();
+			boundary.setWord(Lexicon.BOUNDARY);
+			boundary.setValue(Lexicon.BOUNDARY);
+			boundary.setTag(Lexicon.BOUNDARY_TAG);
+			boundary.setIndex(sentence.size()+1);//1-based indexing used in the parser
+			sentenceB.add(boundary);
 
-			rightBranchTree = this.addRoot(rightBranchTree);
-			return rightBranchTree;
-		}
+			pparser.parse(sentenceB);
 
-		private Tree<String> merge(Tree<String> leftTree, Tree<String> rightTree) {
-			int span = leftTree.getYield().size() + rightTree.getYield().size();
-			String mostFrequentLabel = (String)this.spanToCategories.getCounter(span).argMax();
-			if (mostFrequentLabel == null) {
-				mostFrequentLabel = "NP";
-			}
+			edu.berkeley.nlp.assignments.parsing.trees.Tree tree = pparser.getBestParse();
+			if (tree != null) {
+				tree = debinarizer.transformTree(tree);
+				tree = subcategoryStripper.transformTree(tree);
 
-			List<Tree<String>> children = new ArrayList();
-			children.add(leftTree);
-			children.add(rightTree);
-			return new Tree(mostFrequentLabel, children);
-		}
-
-		private Tree<String> addRoot(Tree<String> tree) {
-			return new Tree("ROOT", Collections.singletonList(tree));
-		}
-
-		private Tree<String> buildTagTree(List<String> words, List<String> tags, int currentPosition) {
-			Tree<String> leafTree = new Tree(words.get(currentPosition));
-			Tree<String> tagTree = new Tree(tags.get(currentPosition), Collections.singletonList(leafTree));
-			return tagTree;
-		}
-
-		private List<String> getBaselineTagging(List<String> sentence) {
-			List<String> tags = new ArrayList();
-			Iterator var3 = sentence.iterator();
-
-			while(var3.hasNext()) {
-				String word = (String)var3.next();
-				String tag = this.getBestTag(word);
-				tags.add(tag);
-			}
-
-			return tags;
-		}
-
-		private String getBestTag(String word) {
-			double bestScore = -1.0D / 0.0;
-			String bestTag = null;
-			Iterator var5 = this.lexicon.getAllTags().iterator();
-
-			while(true) {
-				String tag;
-				double score;
-				do {
-					if (!var5.hasNext()) {
-						return bestTag;
+				List<edu.berkeley.nlp.assignments.parsing.trees.Tree> leaves = tree.getLeaves();
+				Iterator<edu.berkeley.nlp.assignments.parsing.trees.Tree> leafIterator = leaves.iterator();
+				sentenceB.remove(sentenceB.size() - 1);
+				for (HasWord word : sentenceB) {
+					edu.berkeley.nlp.assignments.parsing.trees.Tree leaf = leafIterator.next();
+					if (!(word instanceof Label)) {
+						continue;
 					}
+					leaf.setLabel((Label) word);
+				}
 
-					tag = (String)var5.next();
-					score = this.lexicon.scoreTagging(word, tag);
-				} while(bestTag != null && score <= bestScore);
-
-				bestScore = score;
-				bestTag = tag;
+				return TreeAnnotations.unAnnotateTree(convertBack(tree));
 			}
+			return new Tree<String>("ROOT", Collections.singletonList(new Tree<String>("JUNK")));
 		}
 
 		public GenerativeParser(List<Tree<String>> trainTrees) {
-			System.out.print("Annotating / binarizing training trees ... ");
-			List<Tree<String>> annotatedTrainTrees = this.annotateTrees(trainTrees);
-			System.out.println("done.");
-			System.out.print("Building grammar ... ");
-			this.grammar = Grammar.generativeGrammarFromTrees(annotatedTrainTrees);
-			System.out.println("done. (" + this.grammar.getLabelIndexer().size() + " states)");
-			System.out.print("Discarding grammar and setting up a baseline parser ... ");
-			this.lexicon = new SimpleLexicon(annotatedTrainTrees);
-			this.spanToCategories = new CounterMap();
-			Iterator var4 = annotatedTrainTrees.iterator();
+//			List<Tree<String>> annotatedTrainTrees = this.annotateTrees(trainTrees);
+			Options op = new Options();
+			op.doDep = false;
+			op.testOptions.iterativeCKY = false;
+			binarizer = new TreeAnnotatorAndBinarizer(op.tlpParams, op.forceCNF, !op.trainOptions.outsideFactor(), !op.trainOptions.predictSplits, op);
 
-			while(var4.hasNext()) {
-				Tree<String> trainTree = (Tree)var4.next();
-				this.tallySpans(trainTree, 0);
+			List<edu.berkeley.nlp.assignments.parsing.trees.Tree> treeBank = convertTrainTrees(trainTrees);
+
+			Index<String> stateIndex;
+			Index<String> wordIndex;
+			Index<String> tagIndex;
+
+			Pair<UnaryGrammar, BinaryGrammar> bgug;
+
+			stateIndex = new HashIndex<>();
+			wordIndex = new HashIndex<>();
+			tagIndex = new HashIndex<>();
+
+			BinaryGrammarExtractor bgExtractor = new BinaryGrammarExtractor(stateIndex);
+			bgug = bgExtractor.extract(treeBank);
+
+			double trainSize = treeBank.size();
+
+			Lexicon lex = op.tlpParams.lex(op, wordIndex, tagIndex);
+			lex.initializeTraining(trainSize);
+			lex.train(treeBank);
+			lex.finishTraining();
+
+			BinaryGrammar bg = bgug.second;
+			bg.splitRules();
+			UnaryGrammar ug = bgug.first;
+			ug.purgeRules();
+
+			lp = new LexicalizedParser(lex, bg, ug, null, stateIndex, wordIndex, tagIndex, op);
+			pparser = new ExhaustivePCFGParser(bg, ug, lex, op, stateIndex, wordIndex, tagIndex);
+			subcategoryStripper = op.tlpParams.subcategoryStripper();
+
+//			this.grammar = Grammar.generativeGrammarFromTrees(annotatedTrainTrees);
+//			System.out.println("done. (" + this.grammar.getLabelIndexer().size() + " states)");
+//			System.out.print("Discarding grammar and setting up a baseline parser ... ");
+//			this.lexicon = new SimpleLexicon(annotatedTrainTrees);
+//			this.spanToCategories = new CounterMap();
+//			Iterator var4 = annotatedTrainTrees.iterator();
+//
+//			while(var4.hasNext()) {
+//				Tree<String> trainTree = (Tree)var4.next();
+//				this.tallySpans(trainTree, 0);
+//			}
+
+			System.out.println("done.");
+		}
+
+		public List<edu.berkeley.nlp.assignments.parsing.trees.Tree> convertTrainTrees(List<Tree<String>> trainTrees) {
+			List<edu.berkeley.nlp.assignments.parsing.trees.Tree> newTrees = new ArrayList<>();
+			for (Tree<String> tree: trainTrees) {
+				newTrees.add(binarizer.transformTree(convert(tree)));
+			}
+			return newTrees;
+		}
+
+		private LabeledScoredTreeNode convert(Tree<String> tree) {
+			if (tree.isLeaf()) {
+				return (LabeledScoredTreeNode)lf.newLeaf(tree.getLabel());
 			}
 
-			System.out.println("done.");
+			List<edu.berkeley.nlp.assignments.parsing.trees.Tree> children = new ArrayList<>();
+			for (Tree<String> t : tree.getChildren()) {
+				LabeledScoredTreeNode tt = convert(t);
+				children.add(tt);
+			}
+			return (LabeledScoredTreeNode)lf.newTreeNode(tree.getLabel(), children);
+		}
+
+		public List<Tree<String>> convertBackTrees(List<edu.berkeley.nlp.assignments.parsing.trees.Tree> trees) {
+			List<Tree<String>> newTrees = new ArrayList<>();
+			for (edu.berkeley.nlp.assignments.parsing.trees.Tree tree : trees) {
+				newTrees.add(convertBack(tree));
+			}
+			return newTrees;
+		}
+
+		public Tree<String> convertBack(edu.berkeley.nlp.assignments.parsing.trees.Tree tree) {
+			if (tree.isLeaf()) {
+				return new Tree<String>(tree.label().value());
+			}
+
+			List<Tree<String>> children = new ArrayList<>();
+			for (edu.berkeley.nlp.assignments.parsing.trees.Tree t : tree.children()) {
+				Tree<String> tt = convertBack(t);
+				children.add(tt);
+			}
+			return new Tree<>(tree.label().value(), children);
 		}
 
 		private List<Tree<String>> annotateTrees(List<Tree<String>> trees) {
