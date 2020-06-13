@@ -20,6 +20,7 @@ public class GenerativeParserFactory implements ParserFactory {
 		Grammar grammar;
 
 		public Tree<String> getBestParse(List<String> sentence) {
+			int wordNum = sentence.size();
 
 			List<String> tags = this.getBaselineTagging(sentence);
 			Tree<String> annotatedBestParse = this.buildRightBranchParse(sentence, tags);
