@@ -2,10 +2,6 @@ package edu.berkeley.nlp.assignments.parsing.trees;
 
 import edu.berkeley.nlp.assignments.parsing.ling.CoreAnnotation;
 import edu.berkeley.nlp.assignments.parsing.ling.CoreLabel;
-import edu.berkeley.nlp.assignments.parsing.util.ErasureUtils;
-import edu.berkeley.nlp.assignments.parsing.util.ScoredObject;
-
-import java.util.List;
 
 /**
  * Set of common annotations for {@link edu.berkeley.nlp.assignments.parsing.util.CoreMap}s 
@@ -62,12 +58,4 @@ public class TreeCoreAnnotations {
   public static class HeadTagLabelAnnotation implements CoreAnnotation<CoreLabel> {
     public Class<CoreLabel> getType() {  return CoreLabel.class; } }
 
-  /**
-   * The standard key for storing a list of k-best parses.
-   */
-  public static class KBestTreesAnnotation implements CoreAnnotation<List<Tree>> {
-    public Class<List<Tree>> getType() {
-      return ErasureUtils.uncheckedCast(List.class);
-    }
-  }
 }

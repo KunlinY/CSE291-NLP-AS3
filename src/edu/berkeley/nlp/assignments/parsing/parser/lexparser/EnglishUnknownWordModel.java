@@ -25,10 +25,8 @@
 
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 
-import edu.berkeley.nlp.assignments.parsing.process.DistSimClassifier;
 import edu.berkeley.nlp.assignments.parsing.stats.ClassicCounter;
 import edu.berkeley.nlp.assignments.parsing.util.Index;
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
 
 /**
@@ -36,7 +34,6 @@ import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
  * types of feature modeling; see {@link #getSignature(String, int)}.
  *
  * <i>Implementation note: the contents of this class tend to overlap somewhat
- * with {@link ArabicUnknownWordModel} and were originally included in {@link BaseLexicon}.
  *
  * @author Dan Klein
  * @author Galen Andrew
@@ -46,7 +43,6 @@ import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 public class EnglishUnknownWordModel extends BaseUnknownWordModel  {
 
   /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(EnglishUnknownWordModel.class);
 
   private static final long serialVersionUID = 4825624957364628770L;
 
@@ -95,13 +91,7 @@ public class EnglishUnknownWordModel extends BaseUnknownWordModel  {
     double pb_W_T = Math.log(pb_T_S * p_W / p_T);
 
     if (pb_W_T > -100.0) {
-      if (DEBUG_UWM) {
-        log.info(iTW + " tagging has probability " + pb_W_T);
-      }
       return (float) pb_W_T;
-    }
-    if (DEBUG_UWM) {
-      log.info(iTW + " tagging is impossible.");
     }
     return Float.NEGATIVE_INFINITY;
   } // end score()
@@ -142,10 +132,6 @@ public class EnglishUnknownWordModel extends BaseUnknownWordModel  {
   public int getSignatureIndex(int index, int sentencePosition, String word) {
     String uwSig = getSignature(word, sentencePosition);
     int sig = wordIndex.addToIndex(uwSig);
-    if (DEBUG_UWM) {
-      log.info("Signature (" + unknownLevel + "): mapped " + word +
-                         " (" + index + ") to " + uwSig + " (" + sig + ')');
-    }
     return sig;
   }
 
@@ -349,315 +335,26 @@ public class EnglishUnknownWordModel extends BaseUnknownWordModel  {
 
 
   private void getSignature5(String word, int loc, StringBuilder sb) {
-    // Reformed Mar 2004 (cdm); hopefully better now.
-    // { -CAPS, -INITC ap, -LC lowercase, 0 } +
-    // { -KNOWNLC, 0 } + [only for INITC]
-    // { -NUM, 0 } +
-    // { -DASH, 0 } +
-    // { -last lowered char(s) if known discriminating suffix, 0}
-    int wlen = word.length();
-    int numCaps = 0;
-    boolean hasDigit = false;
-    boolean hasDash = false;
-    boolean hasLower = false;
-    for (int i = 0; i < wlen; i++) {
-      char ch = word.charAt(i);
-      if (Character.isDigit(ch)) {
-        hasDigit = true;
-      } else if (ch == '-') {
-        hasDash = true;
-      } else if (Character.isLetter(ch)) {
-        if (Character.isLowerCase(ch)) {
-          hasLower = true;
-        } else if (Character.isTitleCase(ch)) {
-          hasLower = true;
-          numCaps++;
-        } else {
-          numCaps++;
-        }
-      }
-    }
-    char ch0 = word.charAt(0);
-    String lowered = word.toLowerCase();
-    if (Character.isUpperCase(ch0) || Character.isTitleCase(ch0)) {
-      if (loc == 0 && numCaps == 1) {
-        sb.append("-INITC");
-        if (getLexicon().isKnown(lowered)) {
-          sb.append("-KNOWNLC");
-        }
-      } else {
-        sb.append("-CAPS");
-      }
-    } else if (!Character.isLetter(ch0) && numCaps > 0) {
-      sb.append("-CAPS");
-    } else if (hasLower) { // (Character.isLowerCase(ch0)) {
-      sb.append("-LC");
-    }
-    if (hasDigit) {
-      sb.append("-NUM");
-    }
-    if (hasDash) {
-      sb.append("-DASH");
-    }
-    if (lowered.endsWith("s") && wlen >= 3) {
-      // here length 3, so you don't miss out on ones like 80s
-      char ch2 = lowered.charAt(wlen - 2);
-      // not -ess suffixes or greek/latin -us, -is
-      if (ch2 != 's' && ch2 != 'i' && ch2 != 'u') {
-        sb.append("-s");
-      }
-    } else if (word.length() >= 5 && !hasDash && !(hasDigit && numCaps > 0)) {
-      // don't do for very short words;
-      // Implement common discriminating suffixes
-      if (lowered.endsWith("ed")) {
-        sb.append("-ed");
-      } else if (lowered.endsWith("ing")) {
-        sb.append("-ing");
-      } else if (lowered.endsWith("ion")) {
-        sb.append("-ion");
-      } else if (lowered.endsWith("er")) {
-        sb.append("-er");
-      } else if (lowered.endsWith("est")) {
-        sb.append("-est");
-      } else if (lowered.endsWith("ly")) {
-        sb.append("-ly");
-      } else if (lowered.endsWith("ity")) {
-        sb.append("-ity");
-      } else if (lowered.endsWith("y")) {
-        sb.append("-y");
-      } else if (lowered.endsWith("al")) {
-        sb.append("-al");
-        // } else if (lowered.endsWith("ble")) {
-        // sb.append("-ble");
-        // } else if (lowered.endsWith("e")) {
-        // sb.append("-e");
-      }
-    }
   }
 
 
   private static void getSignature4(String word, int loc, StringBuilder sb) {
-    boolean hasDigit = false;
-    boolean hasNonDigit = false;
-    boolean hasLetter = false;
-    boolean hasLower = false;
-    boolean hasDash = false;
-    boolean hasPeriod = false;
-    boolean hasComma = false;
-    for (int i = 0; i < word.length(); i++) {
-      char ch = word.charAt(i);
-      if (Character.isDigit(ch)) {
-        hasDigit = true;
-      } else {
-        hasNonDigit = true;
-        if (Character.isLetter(ch)) {
-          hasLetter = true;
-          if (Character.isLowerCase(ch) || Character.isTitleCase(ch)) {
-            hasLower = true;
-          }
-        } else {
-          if (ch == '-') {
-            hasDash = true;
-          } else if (ch == '.') {
-            hasPeriod = true;
-          } else if (ch == ',') {
-            hasComma = true;
-          }
-        }
-      }
-    }
-    // 6 way on letters
-    if (Character.isUpperCase(word.charAt(0)) || Character.isTitleCase(word.charAt(0))) {
-      if (!hasLower) {
-        sb.append("-AC");
-      } else if (loc == 0) {
-        sb.append("-SC");
-      } else {
-        sb.append("-C");
-      }
-    } else if (hasLower) {
-      sb.append("-L");
-    } else if (hasLetter) {
-      sb.append("-U");
-    } else {
-      // no letter
-      sb.append("-S");
-    }
-    // 3 way on number
-    if (hasDigit && !hasNonDigit) {
-      sb.append("-N");
-    } else if (hasDigit) {
-      sb.append("-n");
-    }
-    // binary on period, dash, comma
-    if (hasDash) {
-      sb.append("-H");
-    }
-    if (hasPeriod) {
-      sb.append("-P");
-    }
-    if (hasComma) {
-      sb.append("-C");
-    }
-    if (word.length() > 3) {
-      // don't do for very short words: "yes" isn't an "-es" word
-      // try doing to lower for further densening and skipping digits
-      char ch = word.charAt(word.length() - 1);
-      if (Character.isLetter(ch)) {
-        sb.append('-');
-        sb.append(Character.toLowerCase(ch));
-      }
-    }
   }
 
 
   private static void getSignature3(String word, int loc, StringBuilder sb) {
-    // This basically works right, except note that 'S' is applied to all
-    // capitalized letters in first word of sentence, not just first....
-    sb.append('-');
-    char lastClass = '-'; // i.e., nothing
-    int num = 0;
-    for (int i = 0; i < word.length(); i++) {
-      char ch = word.charAt(i);
-      char newClass;
-      if (Character.isUpperCase(ch) || Character.isTitleCase(ch)) {
-        if (loc == 0) {
-          newClass = 'S';
-        } else {
-          newClass = 'L';
-        }
-      } else if (Character.isLetter(ch)) {
-        newClass = 'l';
-      } else if (Character.isDigit(ch)) {
-        newClass = 'd';
-      } else if (ch == '-') {
-        newClass = 'h';
-      } else if (ch == '.') {
-        newClass = 'p';
-      } else {
-        newClass = 's';
-      }
-      if (newClass != lastClass) {
-        lastClass = newClass;
-        sb.append(lastClass);
-        num = 1;
-      } else {
-        if (num < 2) {
-          sb.append('+');
-        }
-        num++;
-      }
-    }
-    if (word.length() > 3) {
-      // don't do for very short words: "yes" isn't an "-es" word
-      // try doing to lower for further densening and skipping digits
-      char ch = Character.toLowerCase(word.charAt(word.length() - 1));
-      sb.append('-');
-      sb.append(ch);
-    }
   }
 
 
   private static void getSignature2(String word, int loc, StringBuilder sb) {
-    // {-ALLC, -INIT, -UC, -LC, zero} +
-    // {-DASH, zero} +
-    // {-NUM, -DIG, zero} +
-    // {lowerLastChar, zeroIfShort}
-    boolean hasDigit = false;
-    boolean hasNonDigit = false;
-    boolean hasLower = false;
-    int wlen = word.length();
-    for (int i = 0; i < wlen; i++) {
-      char ch = word.charAt(i);
-      if (Character.isDigit(ch)) {
-        hasDigit = true;
-      } else {
-        hasNonDigit = true;
-        if (Character.isLetter(ch)) {
-          if (Character.isLowerCase(ch) || Character.isTitleCase(ch)) {
-            hasLower = true;
-          }
-        }
-      }
-    }
-    if (wlen > 0
-            && (Character.isUpperCase(word.charAt(0)) || Character.isTitleCase(word.charAt(0)))) {
-      if (!hasLower) {
-        sb.append("-ALLC");
-      } else if (loc == 0) {
-        sb.append("-INIT");
-      } else {
-        sb.append("-UC");
-      }
-    } else if (hasLower) { // if (Character.isLowerCase(word.charAt(0))) {
-      sb.append("-LC");
-    }
-    // no suffix = no (lowercase) letters
-    if (word.indexOf('-') >= 0) {
-      sb.append("-DASH");
-    }
-    if (hasDigit) {
-      if (!hasNonDigit) {
-        sb.append("-NUM");
-      } else {
-        sb.append("-DIG");
-      }
-    } else if (wlen > 3) {
-      // don't do for very short words: "yes" isn't an "-es" word
-      // try doing toLower for further densening and skipping digits
-      char ch = word.charAt(word.length() - 1);
-      sb.append(Character.toLowerCase(ch));
-    }
-    // no suffix = short non-number, non-alphabetic
   }
 
 
   private static void getSignature1(String word, int loc, StringBuilder sb) {
-    sb.append('-');
-    sb.append(word.substring(Math.max(word.length() - 2, 0), word.length()));
-    sb.append('-');
-    if (Character.isLowerCase(word.charAt(0))) {
-      sb.append("LOWER");
-    } else {
-      if (Character.isUpperCase(word.charAt(0))) {
-        if (loc == 0) {
-          sb.append("INIT");
-        } else {
-          sb.append("UPPER");
-        }
-      } else {
-        sb.append("OTHER");
-      }
-    }
   }
 
 
   private void getSignature8(String word, StringBuilder sb) {
-    sb.append('-');
-    boolean digit = true;
-    for (int i = 0; i < word.length(); i++) {
-      char c = word.charAt(i);
-      if ( ! (Character.isDigit(c) || c == '.' || c == ',' || (i == 0 && (c == '-' || c == '+')))) {
-        digit = false;
-      }
-    }
-    // digit = false;  // todo: Just turned off while we test it.
-    if (digit) {
-      sb.append("NUMBER");
-    } else {
-      if (distSim == null) {
-        distSim = new DistSimClassifier(wordClassesFile, false, true);
-        // todo XXXX booleans depend on distsim file; need more options
-      }
-
-      String cluster = distSim.distSimClass(word);
-      if (cluster == null) {
-        cluster = "NULL";
-      }
-      sb.append(cluster);
-    }
   }
-
-  private transient DistSimClassifier distSim;
 
 } // end class

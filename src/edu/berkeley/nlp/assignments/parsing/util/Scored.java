@@ -13,9 +13,7 @@ package edu.berkeley.nlp.assignments.parsing.util;
  */
 public interface Scored {
 
-  /**
-   * @return The score of this thing.
-   */
+  
   public double score();
 
 }

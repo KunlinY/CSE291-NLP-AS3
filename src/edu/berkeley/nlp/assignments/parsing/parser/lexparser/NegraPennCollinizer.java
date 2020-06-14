@@ -1,8 +1,4 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import edu.berkeley.nlp.assignments.parsing.ling.Label;
 import edu.berkeley.nlp.assignments.parsing.ling.StringLabel;
@@ -11,13 +7,13 @@ import edu.berkeley.nlp.assignments.parsing.trees.Tree;
 import edu.berkeley.nlp.assignments.parsing.trees.TreeFactory;
 import edu.berkeley.nlp.assignments.parsing.trees.TreeTransformer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class NegraPennCollinizer implements TreeTransformer {
 
-  /** A logger for this class */
-  Redwood.RedwoodChannels log = Redwood.channels(NegraPennCollinizer.class);
-
-  private TreebankLangParserParams tlpp; 
+  private TreebankLangParserParams tlpp;
   private final boolean deletePunct;
 
   public NegraPennCollinizer(TreebankLangParserParams tlpp) {
@@ -49,7 +45,6 @@ public class NegraPennCollinizer implements TreeTransformer {
     }
     // TEMPORARY: eliminate the TOPP constituent
     if (tree.children()[0].label().value().equals("TOPP")) {
-      log.info("Found a TOPP");
       tree.setChildren(tree.children()[0].children());
     }
 

@@ -1,71 +1,40 @@
 package edu.berkeley.nlp.assignments.parsing.trees;
 
-import java.io.Serializable;
-
-import edu.berkeley.nlp.assignments.parsing.international.morph.MorphoFeatureSpecification;
-import edu.berkeley.nlp.assignments.parsing.ling.HasWord;
-import edu.berkeley.nlp.assignments.parsing.process.TokenizerFactory;
-import edu.berkeley.nlp.assignments.parsing.process.WhitespaceTokenizer;
-import java.util.function.Predicate;
 import edu.berkeley.nlp.assignments.parsing.util.Filters;
 
+import java.io.Serializable;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 
-/**
- * This provides an implementation of parts of the TreebankLanguagePack
- * API to reduce the load on fresh implementations.  Only the abstract
- * methods below need to be implemented to give a reasonable solution for
- * a new language.
- *
- * @author Christopher Manning
- * @version 1.1
- */
+
 public abstract class AbstractTreebankLanguagePack implements TreebankLanguagePack {
 
-  /**
-   * So changed versions deserialize correctly.
-   */
+  
   private static final long serialVersionUID = -6506749780512708352L;
 
 
   //Grammatical function parameters
-  /**
-   * Default character for indicating that something is a grammatical fn; probably should be overridden by
-   * lang specific ones
-   */
+  
   protected char gfCharacter;
   protected static final char DEFAULT_GF_CHAR = '-';
 
 
-  /**
-   * Use this as the default encoding for Readers and Writers of
-   * Treebank data.
-   */
+  
   public static final String DEFAULT_ENCODING = "UTF-8";
 
 
-  /**
-   * For languages where a Universal Dependency converter
-   * exists this variable determines whether the original
-   * or the Universal converter will be used.
-   */
+  
   protected boolean generateOriginalDependencies;
 
 
-  /**
-   * Gives a handle to the TreebankLanguagePack.
-   */
+  
   public AbstractTreebankLanguagePack() {
     this(DEFAULT_GF_CHAR);
   }
 
 
-  /**
-   * Gives a handle to the TreebankLanguagePack.
-   *
-   * @param gfChar The character that sets of grammatical functions in node labels.
-   */
+  
   public AbstractTreebankLanguagePack(char gfChar) {
     this.gfCharacter = gfChar;
   }
@@ -110,149 +79,77 @@ public abstract class AbstractTreebankLanguagePack implements TreebankLanguagePa
   }
 
 
-  /**
-   * Accepts a String that is a punctuation
-   * tag name, and rejects everything else.
-   *
-   * @return Whether this is a punctuation tag
-   */
+  
   @Override
   public boolean isPunctuationTag(String str) {
     return punctTagStringAcceptFilter.test(str);
   }
 
 
-  /**
-   * Accepts a String that is a punctuation
-   * word, and rejects everything else.
-   * If one can't tell for sure (as for ' in the Penn Treebank), it
-   * maks the best guess that it can.
-   *
-   * @return Whether this is a punctuation word
-   */
+  
   @Override
   public boolean isPunctuationWord(String str) {
     return punctWordStringAcceptFilter.test(str);
   }
 
 
-  /**
-   * Accepts a String that is a sentence end
-   * punctuation tag, and rejects everything else.
-   *
-   * @return Whether this is a sentence final punctuation tag
-   */
+  
   @Override
   public boolean isSentenceFinalPunctuationTag(String str) {
     return sFPunctTagStringAcceptFilter.test(str);
   }
 
 
-  /**
-   * Accepts a String that is a punctuation
-   * tag that should be ignored by EVALB-style evaluation,
-   * and rejects everything else.
-   * Traditionally, EVALB has ignored a subset of the total set of
-   * punctuation tags in the English Penn Treebank (quotes and
-   * period, comma, colon, etc., but not brackets)
-   *
-   * @return Whether this is a EVALB-ignored punctuation tag
-   */
+  
   @Override
   public boolean isEvalBIgnoredPunctuationTag(String str) {
     return eIPunctTagStringAcceptFilter.test(str);
   }
 
 
-  /**
-   * Return a filter that accepts a String that is a punctuation
-   * tag name, and rejects everything else.
-   *
-   * @return The filter
-   */
+  
   @Override
   public Predicate<String> punctuationTagAcceptFilter() {
     return punctTagStringAcceptFilter;
   }
 
 
-  /**
-   * Return a filter that rejects a String that is a punctuation
-   * tag name, and rejects everything else.
-   *
-   * @return The filter
-   */
+  
   @Override
   public Predicate<String> punctuationTagRejectFilter() {
     return Filters.notFilter(punctTagStringAcceptFilter);
   }
 
 
-  /**
-   * Returns a filter that accepts a String that is a punctuation
-   * word, and rejects everything else.
-   * If one can't tell for sure (as for ' in the Penn Treebank), it
-   * makes the best guess that it can.
-   *
-   * @return The Filter
-   */
+  
   @Override
   public Predicate<String> punctuationWordAcceptFilter() {
     return punctWordStringAcceptFilter;
   }
 
 
-  /**
-   * Returns a filter that accepts a String that is not a punctuation
-   * word, and rejects punctuation.
-   * If one can't tell for sure (as for ' in the Penn Treebank), it
-   * makes the best guess that it can.
-   *
-   * @return The Filter
-   */
+  
   @Override
   public Predicate<String> punctuationWordRejectFilter() {
     return Filters.notFilter(punctWordStringAcceptFilter);
   }
 
 
-  /**
-   * Returns a filter that accepts a String that is a sentence end
-   * punctuation tag, and rejects everything else.
-   *
-   * @return The Filter
-   */
+  
   @Override
   public Predicate<String> sentenceFinalPunctuationTagAcceptFilter() {
     return sFPunctTagStringAcceptFilter;
   }
 
 
-  /**
-   * Returns a filter that accepts a String that is a punctuation
-   * tag that should be ignored by EVALB-style evaluation,
-   * and rejects everything else.
-   * Traditionally, EVALB has ignored a subset of the total set of
-   * punctuation tags in the English Penn Treebank (quotes and
-   * period, comma, colon, etc., but not brackets)
-   *
-   * @return The Filter
-   */
+  
   @Override
   public Predicate<String> evalBIgnoredPunctuationTagAcceptFilter() {
     return eIPunctTagStringAcceptFilter;
   }
 
 
-  /**
-   * Returns a filter that accepts everything except a String that is a
-   * punctuation tag that should be ignored by EVALB-style evaluation.
-   * Traditionally, EVALB has ignored a subset of the total set of
-   * punctuation tags in the English Penn Treebank (quotes and
-   * period, comma, colon, etc., but not brackets)
-   *
-   * @return The Filter
-   */
+  
   @Override
   public Predicate<String> evalBIgnoredPunctuationTagRejectFilter() {
     return Filters.notFilter(eIPunctTagStringAcceptFilter);
@@ -273,41 +170,14 @@ public abstract class AbstractTreebankLanguagePack implements TreebankLanguagePa
 
   private static final char[] EMPTY_CHAR_ARRAY = new char[0];
 
-  /**
-   * Return an array of characters at which a String should be
-   * truncated to give the basic syntactic category of a label.
-   * The idea here is that Penn treebank style labels follow a syntactic
-   * category with various functional and crossreferencing information
-   * introduced by special characters (such as "NP-SBJ=1").  This would
-   * be truncated to "NP" by the array containing '-' and "=".
-   *
-   * @return An array of characters that set off label name suffixes
-   */
+  
   @Override
   public char[] labelAnnotationIntroducingCharacters() {
     return EMPTY_CHAR_ARRAY;
   }
 
 
-  /**
-   * Returns the index of the first character that is after the basic
-   * label.  That is, if category is "NP-LGS", it returns 2.
-   * This routine assumes category != null.
-   * This routine returns 0 iff the String is of length 0.
-   * This routine always returns a number &lt;= category.length(), and
-   * so it is safe to pass it as an argument to category.substring().
-   * <p>
-   * NOTE: the routine should never allow the first character of a label
-   * to be taken as the annotation introducing character, because in the
-   * Penn Treebank, "-" is a valid tag, but also the character used to
-   * set off functional and co-indexing annotations. If the first letter is
-   * such a character then a matched character is also not used, for
-   * -LRB- etc., iff there is an intervening character (so --PU becomes -).
-   *
-   * @param category Phrasal category
-   * @return The index of the first character that is after the basic
-   *     label
-   */
+  
   private int postBasicCategoryIndex(String category) {
     boolean sawAtZero = false;
     char seenAtZero = '\u0000';
@@ -369,12 +239,7 @@ public abstract class AbstractTreebankLanguagePack implements TreebankLanguagePa
     return category;
   }
 
-  /**
-   * Returns a {@link Function Function} object that maps Strings to Strings according
-   * to this TreebankLanguagePack's basicCategory() method.
-   *
-   * @return The String-&gt;String Function object
-   */
+  
   @Override
   public Function<String,String> getBasicCategoryFunction() {
     return new BasicCategoryStringFunction(this);
@@ -479,25 +344,14 @@ public abstract class AbstractTreebankLanguagePack implements TreebankLanguagePa
     return last;
   }
 
-  /**
-   * Returns a {@link Function Function} object that maps Strings to Strings according
-   * to this TreebankLanguagePack's categoryAndFunction() method.
-   *
-   * @return The String-&gt;String Function object
-   */
+  
   @Override
   public Function<String,String> getCategoryAndFunctionFunction() {
     return new CategoryAndFunctionStringFunction(this);
   }
 
 
-  /**
-   * Say whether this character is an annotation introducing
-   * character.
-   *
-   * @param ch The character to check
-   * @return Whether it is an annotation introducing character
-   */
+  
   @Override
   public boolean isLabelAnnotationIntroducingCharacter(char ch) {
     char[] cutChars = labelAnnotationIntroducingCharacters();
@@ -510,44 +364,26 @@ public abstract class AbstractTreebankLanguagePack implements TreebankLanguagePa
   }
 
 
-  /**
-   * Accepts a String that is a start symbol of the treebank.
-   *
-   * @return Whether this is a start symbol
-   */
+  
   @Override
   public boolean isStartSymbol(String str) {
     return startSymbolAcceptFilter.test(str);
   }
 
 
-  /**
-   * Return a filter that accepts a String that is a start symbol
-   * of the treebank, and rejects everything else.
-   *
-   * @return The filter
-   */
+  
   @Override
   public Predicate<String> startSymbolAcceptFilter() {
     return startSymbolAcceptFilter;
   }
 
 
-  /**
-   * Returns a String array of treebank start symbols.
-   *
-   * @return The start symbols
-   */
+  
   @Override
   public abstract String[] startSymbols();
 
 
-  /**
-   * Returns a String which is the first (perhaps unique) start symbol
-   * of the treebank, or null if none is defined.
-   *
-   * @return The start symbol
-   */
+  
   @Override
   public String startSymbol() {
     String[] ssyms = startSymbols();
@@ -568,52 +404,6 @@ public abstract class AbstractTreebankLanguagePack implements TreebankLanguagePa
 
   private final Predicate<String> startSymbolAcceptFilter = Filters.collectionAcceptFilter(startSymbols());
 
-  /**
-   * Return a tokenizer which might be suitable for tokenizing text that
-   * will be used with this Treebank/Language pair, without tokenizing carriage returns (i.e., treating them as white space).  The implementation in AbstractTreebankLanguagePack
-   * returns a factory for {@link WhitespaceTokenizer}.
-   *
-   * @return A tokenizer
-   */
-  @Override
-  public TokenizerFactory<? extends HasWord> getTokenizerFactory() {
-    return WhitespaceTokenizer.factory(false);
-  }
-
-  /**
-   * Return a GrammaticalStructureFactory suitable for this language/treebank.
-   * (To be overridden in subclasses.)
-   *
-   * @return A GrammaticalStructureFactory suitable for this language/treebank
-   */
-  @Override
-  public GrammaticalStructureFactory grammaticalStructureFactory() {
-    throw new UnsupportedOperationException(
-            "No GrammaticalStructureFactory (typed dependencies) available for language/treebank " +
-                    getClass().getName());
-  }
-
-  /**
-   * Return a GrammaticalStructureFactory suitable for this language/treebank.
-   * (To be overridden in subclasses.)
-   *
-   * @return A GrammaticalStructureFactory suitable for this language/treebank
-   */
-  @Override
-  public GrammaticalStructureFactory grammaticalStructureFactory(Predicate<String> puncFilt) {
-    return grammaticalStructureFactory();
-  }
-
-  /**
-   * Return a GrammaticalStructureFactory suitable for this language/treebank.
-   * (To be overridden in subclasses.)
-   *
-   * @return A GrammaticalStructureFactory suitable for this language/treebank
-   */
-  @Override
-  public GrammaticalStructureFactory grammaticalStructureFactory(Predicate<String> puncFilt, HeadFinder typedDependencyHeadFinder) {
-    return grammaticalStructureFactory();
-  }
 
   @Override
   public boolean supportsGrammaticalStructures() {
@@ -633,20 +423,6 @@ public abstract class AbstractTreebankLanguagePack implements TreebankLanguagePa
   /** {@inheritDoc} */
   @Override
   public TreeReaderFactory treeReaderFactory() {
-    return new PennTreeReaderFactory();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public TokenizerFactory<Tree> treeTokenizerFactory() {
-    return new TreeTokenizerFactory(treeReaderFactory());
-  }
-
-  /**
-   * Returns a morphological feature specification for words in this language.
-   */
-  @Override
-  public MorphoFeatureSpecification morphFeatureSpec() {
     return null;
   }
 

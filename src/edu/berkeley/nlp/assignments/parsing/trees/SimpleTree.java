@@ -1,5 +1,4 @@
 package edu.berkeley.nlp.assignments.parsing.trees; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
 import edu.berkeley.nlp.assignments.parsing.ling.Label;
 
@@ -17,7 +16,6 @@ import java.util.List;
 public class SimpleTree extends Tree  {
 
   /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(SimpleTree.class);
 
   private static final long serialVersionUID = -8075763706877132926L;
 
@@ -74,7 +72,6 @@ public class SimpleTree extends Tree  {
   @Override
   public void setChildren(Tree[] children) {
     if (children == null) {
-      log.info("Warning -- you tried to set the children of a SimpleTree to null.\nYou should be really using a zero-length array instead.");
       daughterTrees = EMPTY_TREE_ARRAY;
     } else {
       daughterTrees = children;

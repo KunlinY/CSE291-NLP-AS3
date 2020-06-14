@@ -3,9 +3,6 @@ package edu.berkeley.nlp.assignments.parsing.util;
 import java.io.Serializable;
 import java.util.List;
 
-import edu.berkeley.nlp.assignments.parsing.util.logging.PrettyLoggable;
-import edu.berkeley.nlp.assignments.parsing.util.logging.PrettyLogger;
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood.RedwoodChannels;
 
 /**
  * Class representing an ordered triple of objects, possibly typed.
@@ -15,7 +12,7 @@ import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood.RedwoodChannels
  *
  * @author Teg Grenager (grenager@stanford.edu)
  */
-public class Triple<T1, T2, T3> implements Comparable<Triple<T1,T2,T3>>, Serializable, PrettyLoggable {
+public class Triple<T1, T2, T3> implements Comparable<Triple<T1,T2,T3>>, Serializable {
 
   private static final long serialVersionUID = -4182871682751645440L;
   public T1 first;
@@ -95,7 +92,7 @@ public class Triple<T1, T2, T3> implements Comparable<Triple<T1,T2,T3>>, Seriali
   
 
   public List<Object> asList() {
-    return CollectionUtils.makeList(first, second, third);
+    return null;
   }
 
   /**
@@ -105,13 +102,6 @@ public class Triple<T1, T2, T3> implements Comparable<Triple<T1,T2,T3>>, Seriali
    */
   public static <X, Y, Z> Triple<X, Y, Z> makeTriple(X x, Y y, Z z) {
     return new Triple<>(x, y, z);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void prettyLog(RedwoodChannels channels, String description) {
-    PrettyLogger.log(channels, description, this.asList());
   }
 
   @SuppressWarnings("unchecked")

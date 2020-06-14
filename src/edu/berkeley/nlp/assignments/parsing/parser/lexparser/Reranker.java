@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.List;
 
 import edu.berkeley.nlp.assignments.parsing.ling.HasWord;
-import edu.berkeley.nlp.assignments.parsing.parser.metrics.Eval;
 
 /**
  * A scorer which the RerankingParserQuery can use to rescore
@@ -32,5 +31,4 @@ import edu.berkeley.nlp.assignments.parsing.parser.metrics.Eval;
 public interface Reranker extends Serializable {
   RerankerQuery process(List<? extends HasWord> sentence);
 
-  List<Eval> getEvals();
 }

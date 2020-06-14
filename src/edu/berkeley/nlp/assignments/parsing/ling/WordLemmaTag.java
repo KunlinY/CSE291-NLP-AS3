@@ -1,6 +1,5 @@
 package edu.berkeley.nlp.assignments.parsing.ling;
 
-import edu.berkeley.nlp.assignments.parsing.process.Morphology;
 
 /**
  * A WordLemmaTag corresponds to a pair of a tagged (e.g., for part of speech)
@@ -37,20 +36,6 @@ public class WordLemmaTag implements Label, Comparable<WordLemmaTag>, HasWord, H
   /**
    * Create a new {@code WordLemmaTag}.
    *
-   * @param word This word is set as the word of this Label
-   * @param tag  The {@code value()} of this Label is set as the
-   *             tag of this Label
-   */
-  public WordLemmaTag(String word, String tag) {
-    WordTag wT = new WordTag(word, tag);
-    this.word = word;
-    this.lemma = Morphology.stemStatic(wT).word();
-    setTag(tag);
-  }
-
-  /**
-   * Create a new {@code WordLemmaTag}.
-   *
    * @param word  This word is passed to the supertype constructor
    * @param lemma The lemma is set as the lemma of this Label
    * @param tag   The {@code value()} of this Label is set as the
@@ -60,21 +45,6 @@ public class WordLemmaTag implements Label, Comparable<WordLemmaTag>, HasWord, H
     this(word);
     this.lemma = lemma;
     setTag(tag);
-  }
-
-  /**
-   * Create a new {@code WordLemmaTag} from a Label.  The value of
-   * the Label corresponds to the word of the WordLemmaTag.
-   *
-   * @param word This word is passed to the supertype constructor
-   * @param tag  The {@code value()} of this Label is set as the
-   *             tag of this Label
-   */
-  public WordLemmaTag(Label word, Label tag) {
-    this(word);
-    WordTag wT = new WordTag(word, tag);
-    this.lemma = Morphology.stemStatic(wT).word();
-    setTag(tag.value());
   }
 
 
@@ -169,7 +139,6 @@ public class WordLemmaTag implements Label, Comparable<WordLemmaTag>, HasWord, H
     if (first == second) {
       setWord(labelStr.substring(0, first));
       setTag(labelStr.substring(first + 1));
-      setLemma(Morphology.lemmaStatic(labelStr.substring(0, first), labelStr.substring(first + 1)));
     } else if (first >= 0) {
       setWord(labelStr.substring(0, first));
       setLemma(labelStr.substring(first + 1, second));
@@ -236,30 +205,6 @@ public class WordLemmaTag implements Label, Comparable<WordLemmaTag>, HasWord, H
   @Override
   public LabelFactory labelFactory() {
     return new WordLemmaTagFactory();
-  }
-
-
-  /*for debugging only*/
-  public static void main(String[] args) {
-    WordLemmaTag wLT = new WordLemmaTag();
-    wLT.setFromString("hunter/NN");
-
-    System.out.println(wLT.word());
-    System.out.println(wLT.lemma());
-    System.out.println(wLT.tag());
-
-    WordLemmaTag wLT2 = new WordLemmaTag();
-    wLT2.setFromString("bought/buy/V");
-    System.out.println(wLT2.word());
-    System.out.println(wLT2.lemma());
-    System.out.println(wLT2.tag());
-
-    WordLemmaTag wLT3 = new WordLemmaTag();
-    wLT2.setFromString("life");
-    System.out.println(wLT3.word());
-    System.out.println(wLT3.lemma());
-    System.out.println(wLT3.tag());
-
   }
 
   private static final long serialVersionUID = -5993410244163988138L;

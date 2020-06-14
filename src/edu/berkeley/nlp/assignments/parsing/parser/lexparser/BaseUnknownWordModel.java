@@ -1,8 +1,4 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
-
-import java.util.Map;
-import java.util.Set;
 
 import edu.berkeley.nlp.assignments.parsing.ling.Label;
 import edu.berkeley.nlp.assignments.parsing.ling.Tag;
@@ -10,6 +6,9 @@ import edu.berkeley.nlp.assignments.parsing.stats.ClassicCounter;
 import edu.berkeley.nlp.assignments.parsing.stats.Counter;
 import edu.berkeley.nlp.assignments.parsing.util.Generics;
 import edu.berkeley.nlp.assignments.parsing.util.Index;
+
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -24,9 +23,6 @@ import edu.berkeley.nlp.assignments.parsing.util.Index;
  *
  */
 public class BaseUnknownWordModel implements UnknownWordModel  {
-
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(BaseUnknownWordModel.class);
 
   private static final long serialVersionUID = 6355171148751673822L;
 
@@ -157,7 +153,6 @@ public class BaseUnknownWordModel implements UnknownWordModel  {
          * warning and return probability 0
          */
         if (wordProbs == null) {
-          log.info("Warning: proposed tag is unseen in training data:\t"+tagStr);
           logProb = Float.NEGATIVE_INFINITY;
         } else if (wordProbs.keySet().contains(end)) {
           logProb = (float) wordProbs.getCount(end);
@@ -168,7 +163,6 @@ public class BaseUnknownWordModel implements UnknownWordModel  {
     } else if (useGT) {
       logProb = scoreGT(tagStr);
     } else {
-      log.info("Warning: no unknown word model in place!\nGiving the combination " + word + ' ' + tagStr + " zero probability.");
       logProb = Float.NEGATIVE_INFINITY; // should never get this!
     }
 
@@ -187,7 +181,6 @@ public class BaseUnknownWordModel implements UnknownWordModel  {
   // todo [cdm 2012, based on error report from Thang]: this is broken because the Label passed in is a Tag, which will never match on the CoreLabel's now in unknownGT.keySet()
   // todo [cdm 2012]: But see if this bug is only if you use Lexicon's main method, or also when training a parser in the usual way.
   protected float scoreGT(String tag) {
-    if (VERBOSE) log.info("using GT for unknown word and tag " + tag);
     if (unknownGT.containsKey(tag)) {
       return unknownGT.get(tag).floatValue();
     } else {
@@ -248,7 +241,6 @@ public class BaseUnknownWordModel implements UnknownWordModel  {
   @Override
   public void addTagging(boolean seen, IntTaggedWord itw, double count) {
     if (seen) {
-      log.info("UWM.addTagging: Shouldn't call with seen word!");
    } else {
       unSeenCounter.incrementCount(itw, count);
       // if (itw.tag() == nullTag) {

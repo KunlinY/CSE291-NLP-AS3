@@ -1,6 +1,4 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
-
 // Looks like the intended behavior of TestTagProjection is:
 // 1) Include the basic category (everything before a '-' or '^' annotation)
 // 2) Include any annotation introduced with '-'
@@ -16,8 +14,6 @@ import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 /** @author Dan Klein */
 public class TestTagProjection implements TagProjection  {
 
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(TestTagProjection.class);
 
   private static final long serialVersionUID = 9161675508802284114L;
 

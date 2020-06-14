@@ -1,7 +1,5 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 
-import edu.berkeley.nlp.assignments.parsing.io.NumberRangeFileFilter;
-import edu.berkeley.nlp.assignments.parsing.ling.CategoryWordTag;
 import edu.berkeley.nlp.assignments.parsing.ling.WordFactory;
 import edu.berkeley.nlp.assignments.parsing.trees.*;
 import edu.berkeley.nlp.assignments.parsing.util.Generics;
@@ -40,15 +38,7 @@ public class TreebankAnnotator {
 
 
   public static List<Tree> getTrees(String path, int low, int high, int minLength, int maxLength) {
-    Treebank treebank = new DiskTreebank(in -> new PennTreeReader(in, new LabeledScoredTreeFactory(new WordFactory()), new BobChrisTreeNormalizer()));
-    treebank.loadPath(path, new NumberRangeFileFilter(low, high, true));
-    List<Tree> trees = new ArrayList<>();
-    for (Tree tree : treebank) {
-      if (tree.yield().size() <= maxLength && tree.yield().size() >= minLength) {
-        trees.add(tree);
-      }
-    }
-    return trees;
+    return null;
   }
 
   public static List<Tree> removeDependencyRoots(List<Tree> trees) {
@@ -87,17 +77,6 @@ public class TreebankAnnotator {
     treeUnTransformer = new Debinarizer(op.forceCNF);
     collinizer = op.tlpParams.collinizer();
     this.op = op;
-  }
-
-
-  public static void main(String[] args) {
-    CategoryWordTag.printWordTag = false;
-    String path = args[0];
-    List<Tree> trees = getTrees(path, 200, 219, 0, 10);
-    trees.iterator().next().pennPrint();
-    Options op = new Options();
-    List<Tree> annotatedTrees = TreebankAnnotator.removeDependencyRoots(new TreebankAnnotator(op, path).annotateTrees(trees));
-    annotatedTrees.iterator().next().pennPrint();
   }
 
 }

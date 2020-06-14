@@ -1,5 +1,4 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
 import java.util.*;
 
@@ -13,9 +12,6 @@ import edu.berkeley.nlp.assignments.parsing.util.Generics;
  * @author Dan Klein
  */
 public class HookChart  {
-
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(HookChart.class);
 
   private Map<ChartIndex,List<Hook>> registeredPreHooks = Generics.newHashMap();
   private Map<ChartIndex,List<Hook>> registeredPostHooks = Generics.newHashMap();

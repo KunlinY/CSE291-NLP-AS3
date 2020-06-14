@@ -1,14 +1,10 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
 import edu.berkeley.nlp.assignments.parsing.trees.TreebankLanguagePack;
 
 
 /** @author Dan Klein */
 public class BasicCategoryTagProjection implements TagProjection  {
-
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(BasicCategoryTagProjection.class);
 
   private static final long serialVersionUID = -2322431101811335089L;
 

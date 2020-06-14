@@ -1,49 +1,19 @@
 package edu.berkeley.nlp.assignments.parsing.parser.common;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.List;
-
-
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
-
-import edu.berkeley.nlp.assignments.parsing.io.IOUtils;
-import edu.berkeley.nlp.assignments.parsing.io.RuntimeIOException;
 import edu.berkeley.nlp.assignments.parsing.ling.CoreLabel;
 import edu.berkeley.nlp.assignments.parsing.ling.HasWord;
 import edu.berkeley.nlp.assignments.parsing.ling.TaggedWord;
-import edu.berkeley.nlp.assignments.parsing.parser.metrics.Eval;
-import edu.berkeley.nlp.assignments.parsing.parser.metrics.ParserQueryEval;
-import edu.berkeley.nlp.assignments.parsing.process.Morphology;
-import edu.berkeley.nlp.assignments.parsing.process.Tokenizer;
-import edu.berkeley.nlp.assignments.parsing.process.TokenizerFactory;
-import edu.berkeley.nlp.assignments.parsing.trees.Tree;
-import edu.berkeley.nlp.assignments.parsing.trees.TreebankLanguagePack;
-import java.util.function.Function;
-import edu.berkeley.nlp.assignments.parsing.util.Generics;
-import edu.berkeley.nlp.assignments.parsing.util.ReflectionLoading;
-import edu.berkeley.nlp.assignments.parsing.util.Timing;
-// TODO: it would be nice to move these to common, but that would
-// wreck all existing models
 import edu.berkeley.nlp.assignments.parsing.parser.lexparser.Options;
 import edu.berkeley.nlp.assignments.parsing.parser.lexparser.TreebankLangParserParams;
+import edu.berkeley.nlp.assignments.parsing.trees.Tree;
+import edu.berkeley.nlp.assignments.parsing.trees.TreebankLanguagePack;
+import edu.berkeley.nlp.assignments.parsing.util.ReflectionLoading;
 
-/**
- * An interface for the classes which store the data for a parser.
- * Objects which inherit this interface have a way to produce
- * ParserQuery objects, have a general Options object, and return a
- * list of Evals to perform on a parser.  This helps classes such as
- * {@link edu.berkeley.nlp.assignments.parsing.parser.lexparser.EvaluateTreebank}
- * analyze the performance of a parser.
- *
- * TODO: it would be nice to actually make this an interface again.
- * Perhaps Java 8 will allow that
- *
- * @author John Bauer
- */
+import java.util.List;
+import java.util.function.Function;
+
+
 public abstract class ParserGrammar implements Function<List<? extends HasWord>, Tree> {
-
-  private static Redwood.RedwoodChannels logger = Redwood.channels(ParserGrammar.class);
 
   public abstract ParserQuery parserQuery();
 
@@ -65,10 +35,7 @@ public abstract class ParserGrammar implements Function<List<? extends HasWord>,
    * Tokenize the text using the parser's tokenizer
    */
   public List<? extends HasWord> tokenize(String sentence) {
-    TokenizerFactory<? extends HasWord> tf = treebankLanguagePack().getTokenizerFactory();
-    Tokenizer<? extends HasWord> tokenizer = tf.getTokenizer(new StringReader(sentence));
-    List<? extends HasWord> tokens = tokenizer.tokenize();
-    return tokens;
+    return null;
   }
 
   /**
@@ -112,24 +79,7 @@ public abstract class ParserGrammar implements Function<List<? extends HasWord>,
    * Morphology class, which is English-only
    */
   public List<CoreLabel> lemmatize(List<? extends HasWord> tokens) {
-    List<TaggedWord> tagged;
-    if (getOp().testOptions.preTag) {
-      Function<List<? extends HasWord>, List<TaggedWord>> tagger = loadTagger();
-      tagged = tagger.apply(tokens);
-    } else {
-      Tree tree = parse(tokens);
-      tagged = tree.taggedYield();
-    }
-    Morphology morpha = new Morphology();
-    List<CoreLabel> lemmas = Generics.newArrayList();
-    for (TaggedWord token : tagged) {
-      CoreLabel label = new CoreLabel();
-      label.setWord(token.word());
-      label.setTag(token.tag());
-      morpha.stem(label);
-      lemmas.add(label);
-    }
-    return lemmas;
+    return null;
   }
 
   /**
@@ -142,17 +92,6 @@ public abstract class ParserGrammar implements Function<List<? extends HasWord>,
    *         root.
    */
   public abstract Tree parse(List<? extends HasWord> words);
-
-  /**
-   * Returns a list of extra Eval objects to use when scoring the parser.
-   */
-  public abstract List<Eval> getExtraEvals();
-
-  /**
-   * Return a list of Eval-style objects which care about the whole
-   * ParserQuery, not just the finished tree
-   */
-  public abstract List<ParserQueryEval> getParserQueryEvals();
 
   public abstract Options getOp();
 
@@ -176,20 +115,5 @@ public abstract class ParserGrammar implements Function<List<? extends HasWord>,
    * The model requires text to be pretagged
    */
   public abstract boolean requiresTags();
-
-  public static ParserGrammar loadModel(String path, String ... extraFlags) {
-    ParserGrammar parser;
-    try {
-      Timing timing = new Timing();
-      parser = IOUtils.readObjectFromURLOrClasspathOrFileSystem(path);
-      timing.done(logger, "Loading parser from serialized file " + path);
-    } catch (IOException | ClassNotFoundException e) {
-      throw new RuntimeIOException(e);
-    }
-    if (extraFlags.length > 0) {
-      parser.setOptionFlags(extraFlags);
-    }
-    return parser;
-  }
 
 }

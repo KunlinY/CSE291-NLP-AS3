@@ -3,7 +3,6 @@ package edu.berkeley.nlp.assignments.parsing.trees;
 import edu.berkeley.nlp.assignments.parsing.ling.CoreLabel;
 import edu.berkeley.nlp.assignments.parsing.ling.HasWord;
 import edu.berkeley.nlp.assignments.parsing.ling.Label;
-import edu.berkeley.nlp.assignments.parsing.util.XMLUtils;
 
 /**
  * An individual dependency between a head and a dependent.
@@ -122,14 +121,7 @@ public class UnnamedDependency implements Dependency<Label, Label, Object> {
    * Otherwise the default toString() is used.
    */
   public String toString(String format) {
-    switch (format) {
-      case "xml":
-        return "  <dep>\n    <governor>" + XMLUtils.escapeXML(governor().value()) + "</governor>\n    <dependent>" + XMLUtils.escapeXML(dependent().value()) + "</dependent>\n  </dep>";
-      case "predicate":
-        return "dep(" + governor() + "," + dependent() + ")";
-      default:
-        return toString();
-    }
+    return null;
   }
   
   public DependencyFactory dependencyFactory() {

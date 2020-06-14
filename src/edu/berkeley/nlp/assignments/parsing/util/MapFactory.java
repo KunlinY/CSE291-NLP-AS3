@@ -4,15 +4,9 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * A factory class for vending different sorts of Maps.
- *
- * @author Dan Klein (klein@cs.stanford.edu)
- * @author Kayur Patel (kdpatel@cs)
- */
+
 public abstract class MapFactory<K,V> implements Serializable {
 
-  // allow people to write subclasses
   protected MapFactory() {
   }
 
@@ -38,27 +32,10 @@ public abstract class MapFactory<K,V> implements Serializable {
 
   public static final MapFactory CONCURRENT_MAP_FACTORY = new ConcurrentMapFactory();
 
-  /** Return a MapFactory that returns a HashMap.
-   *  <i>Implementation note: This method uses the same trick as the methods
-   *  like emptyMap() introduced in the Collections class in JDK1.5 where
-   *  callers can call this method with apparent type safety because this
-   *  method takes the hit for the cast.
-   *
-   *  @return A MapFactory that makes a HashMap.
-   */
   @SuppressWarnings("unchecked")
   public static <K,V> MapFactory<K,V> hashMapFactory() {
     return HASH_MAP_FACTORY;
   }
-
-  /** Return a MapFactory that returns an IdentityHashMap.
-   *  <i>Implementation note: This method uses the same trick as the methods
-   *  like emptyMap() introduced in the Collections class in JDK1.5 where
-   *  callers can call this method with apparent type safety because this
-   *  method takes the hit for the cast.
-   *
-   *  @return A MapFactory that makes a HashMap.
-   */
   @SuppressWarnings("unchecked")
   public static <K,V> MapFactory<K,V> identityHashMapFactory() {
     return IDENTITY_HASH_MAP_FACTORY;
@@ -90,9 +67,7 @@ public abstract class MapFactory<K,V> implements Serializable {
     return TREE_MAP_FACTORY;
   }
 
-  /**
-   * Return a MapFactory that returns a TreeMap with the given Comparator.
-   */
+  
   public static <K,V> MapFactory<K,V> treeMapFactory(Comparator<? super K> comparator) {
     return new TreeMapFactory<>(comparator);
   }
@@ -348,33 +323,32 @@ public abstract class MapFactory<K,V> implements Serializable {
 
     @Override
     public Map<K,V> newMap() {
-      return new ArrayMap<>();
+      return null;
     }
 
     @Override
     public Map<K,V> newMap(int initCapacity) {
-      return new ArrayMap<>(initCapacity);
+      return null;
     }
 
     @Override
     public Set<K> newSet() {
-      return new ArraySet<>();
+      return null;
     }
 
     @Override
     public Set<K> newSet(Collection<K> init) {
-      return new ArraySet<>();
+      return null;
     }
 
     @Override
     public <K1, V1> Map<K1, V1> setMap(Map<K1, V1> map) {
-      return new ArrayMap<>();
+      return null;
     }
 
     @Override
     public <K1, V1> Map<K1, V1> setMap(Map<K1,V1> map, int initCapacity) {
-      map = new ArrayMap<>(initCapacity);
-      return map;
+      return null;
     }
 
   } // end class ArrayMapFactory
@@ -419,38 +393,19 @@ public abstract class MapFactory<K,V> implements Serializable {
 
   } // end class ConcurrentMapFactory
 
-  /**
-   * Returns a new non-parameterized map of a particular sort.
-   *
-   * @return A new non-parameterized map of a particular sort
-   */
+  
   public abstract Map<K,V> newMap();
 
-  /**
-   * Returns a new non-parameterized map of a particular sort with an initial capacity.
-   *
-   * @param initCapacity initial capacity of the map
-   * @return A new non-parameterized map of a particular sort with an initial capacity
-   */
+  
   public abstract Map<K,V> newMap(int initCapacity);
 
-  /**
-   * A set with the same {@code K} parameterization of the Maps.
-   */
+  
   public abstract Set<K> newSet();
 
-  /**
-   * A set with the same {@code K} parameterization, but initialized to the given collection.
-   */
+  
   public abstract Set<K> newSet(Collection<K> init);
 
-  /**
-   * A method to get a parameterized (genericized) map out.
-   *
-   * @param map A type-parameterized {@link Map} argument
-   * @return A {@link Map} with type-parameterization identical to that of
-   *         the argument.
-   */
+  
   public abstract <K1, V1> Map<K1, V1> setMap(Map<K1,V1> map);
 
   public abstract <K1, V1> Map<K1, V1> setMap(Map<K1,V1> map, int initCapacity);

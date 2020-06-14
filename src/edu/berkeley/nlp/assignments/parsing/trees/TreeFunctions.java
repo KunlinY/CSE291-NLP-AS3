@@ -3,14 +3,11 @@ package edu.berkeley.nlp.assignments.parsing.trees;
 import edu.berkeley.nlp.assignments.parsing.ling.CategoryWordTagFactory;
 import edu.berkeley.nlp.assignments.parsing.ling.CoreLabel;
 import edu.berkeley.nlp.assignments.parsing.ling.StringLabel;
-import edu.berkeley.nlp.assignments.parsing.ling.StringLabelFactory;
-import java.util.function.Function;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * This is a utility class which vends tree transformers to translate
@@ -149,29 +146,5 @@ public class TreeFunctions {
     return new LabeledToDescriptiveCoreLabelTreeFunction();
   }
 
-
-  /**
-   * This method just tests the functionality of the included transformers.
-   */
-  public static void main(String[] args) {
-    //TreeFactory tf = new LabeledScoredTreeFactory();
-    Tree stringyTree = null;
-    try {
-      stringyTree = (new PennTreeReader(new StringReader("(S (VP (VBZ Try) (NP (DT this))) (. .))"), new LabeledScoredTreeFactory(new StringLabelFactory()))).readTree();
-    } catch (IOException e) {
-      // do nothing
-    }
-    System.out.println(stringyTree);
-    Function<Tree, Tree> a = getLabeledTreeToCategoryWordTagTreeFunction();
-    Tree adaptyTree = a.apply(stringyTree);
-    System.out.println(adaptyTree);
-    adaptyTree.percolateHeads(new CollinsHeadFinder());
-    System.out.println(adaptyTree);
-
-    Function<Tree, Tree> b = getLabeledTreeToStringLabeledTreeFunction();
-    Tree stringLabelTree = b.apply(adaptyTree);
-    System.out.println(stringLabelTree);
-
-  }
 
 }

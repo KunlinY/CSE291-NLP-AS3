@@ -6,10 +6,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-import edu.berkeley.nlp.assignments.parsing.util.logging.PrettyLogger;
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood.RedwoodChannels;
-
 
 /**
  * Base implementation of {@link CoreMap} backed by two Java arrays.
@@ -475,11 +471,6 @@ public class ArrayCoreMap implements CoreMap /*, Serializable */ {
       return false;
     }
 
-    if (obj instanceof HashableCoreMap) {
-      // overridden behavior for HashableCoreMap
-      return obj.equals(this);
-    }
-
     if (obj instanceof ArrayCoreMap) {
       // specialized equals for ArrayCoreMap
       return equals((ArrayCoreMap)obj);
@@ -640,33 +631,6 @@ public class ArrayCoreMap implements CoreMap /*, Serializable */ {
   private void writeObject(ObjectOutputStream out) throws IOException {
     compact();
     out.defaultWriteObject();
-  }
-
-  // TODO: make prettyLog work in the situation of loops in the object graph
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @SuppressWarnings("unchecked")
-  public void prettyLog(RedwoodChannels channels, String description) {
-    Redwood.startTrack(description);
-
-    // sort keys by class name
-    List<Class> sortedKeys = new ArrayList<>(this.keySet());
-    sortedKeys.sort(Comparator.comparing(Class::getCanonicalName));
-
-    // log key/value pairs
-    for (Class key : sortedKeys) {
-      String keyName = key.getCanonicalName().replace("class ", "");
-      Object value = this.get(key);
-      if (PrettyLogger.dispatchable(value)) {
-        PrettyLogger.log(channels, keyName, value);
-      } else {
-        channels.logf("%s = %s", keyName, value);
-      }
-    }
-    Redwood.endTrack(description);
   }
 
 }

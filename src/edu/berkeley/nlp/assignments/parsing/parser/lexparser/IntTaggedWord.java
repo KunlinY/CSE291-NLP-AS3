@@ -2,7 +2,6 @@ package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 
 import edu.berkeley.nlp.assignments.parsing.ling.TaggedWord;
 import edu.berkeley.nlp.assignments.parsing.util.Index;
-import edu.berkeley.nlp.assignments.parsing.util.StringUtils;
 
 import java.io.Serializable;
 
@@ -93,9 +92,7 @@ public class IntTaggedWord implements Serializable, Comparable<IntTaggedWord> {
 
   public String toLexicalEntry(Index<String> wordIndex,
                                Index<String> tagIndex) {
-    String wordStr = wordString(wordIndex);
-    String tagStr = tagString(tagIndex);
-    return '\"' + StringUtils.escapeString(tagStr, charsToEscape, '\\') + "\" -> \"" + StringUtils.escapeString(wordStr, charsToEscape, '\\') + '\"';
+    return "";
   }
 
   @Override

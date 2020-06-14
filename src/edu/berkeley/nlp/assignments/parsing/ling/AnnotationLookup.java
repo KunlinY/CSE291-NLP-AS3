@@ -1,10 +1,10 @@
 package edu.berkeley.nlp.assignments.parsing.ling;
 
-import java.util.Map;
-
 import edu.berkeley.nlp.assignments.parsing.ling.CoreLabel.GenericAnnotation;
 import edu.berkeley.nlp.assignments.parsing.util.ErasureUtils;
 import edu.berkeley.nlp.assignments.parsing.util.Generics;
+
+import java.util.Map;
 
 /** Provides a mapping between CoreAnnotation keys, which are classes, and a text String that names them,
  *  which is needed for things like text serializations and the Semgrex query language.
@@ -35,7 +35,6 @@ public class AnnotationLookup {
     SHAPE_KEY(CoreAnnotations.ShapeAnnotation.class, "shape"),
     LEFT_TERM_KEY(CoreAnnotations.LeftTermAnnotation.class, "LEFT_TERM"), // effectively unused in 2016 (was in PropBank SRL)
     PARENT_KEY(CoreAnnotations.ParentAnnotation.class, "PARENT"),
-    SPAN_KEY(CoreAnnotations.SpanAnnotation.class, "SPAN"),
     BEFORE_KEY(CoreAnnotations.BeforeAnnotation.class, "before"),
     AFTER_KEY(CoreAnnotations.AfterAnnotation.class, "after"),
     CURRENT_KEY(CoreAnnotations.OriginalTextAnnotation.class, "current"),

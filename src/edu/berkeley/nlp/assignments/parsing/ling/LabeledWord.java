@@ -11,34 +11,6 @@ public class LabeledWord extends Word {
   
   private static final String DIVIDER = "/";
 
-  /**
-   * Create a new <code>TaggedWord</code>.
-   * It will have <code>null</code> for its content fields.
-   */
-  public LabeledWord() {
-    super();
-  }
-
-  /**
-   * Create a new <code>TaggedWord</code>.
-   *
-   * @param word The word, which will have a <code>null</code> tag
-   */
-  public LabeledWord(String word) {
-    super(word);
-  }
-
-  /**
-   * Create a new <code>TaggedWord</code>.
-   *
-   * @param word The word
-   * @param tag  The tag
-   */
-  public LabeledWord(String word, Label tag) {
-    super(word);
-    this.tag = tag;
-  }
-
   public LabeledWord(Label word, Label tag) {
     super(word);
     this.tag = tag;

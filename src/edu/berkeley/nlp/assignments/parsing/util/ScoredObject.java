@@ -3,12 +3,6 @@ package edu.berkeley.nlp.assignments.parsing.util;
 
 import java.io.Serializable;
 
-/**
- * Wrapper class for holding a scored object.
- *
- * @author Dan Klein
- * @version 2/7/01
- */
 public class ScoredObject<T> implements Scored, Serializable {
 
   private double score;

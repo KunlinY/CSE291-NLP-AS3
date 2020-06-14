@@ -16,9 +16,7 @@ import edu.berkeley.nlp.assignments.parsing.ling.StringLabel;
 public class LabeledConstituent extends SimpleConstituent
         /* implements Label */ {
 
-  /**
-   * The Label.
-   */
+  
   private Label label;
 
 
@@ -141,12 +139,7 @@ public class LabeledConstituent extends SimpleConstituent
     static final LabelFactory lf = new LabeledConstituentLabelFactory();
   }
 
-  /**
-   * Return a factory for this kind of label.
-   * The factory returned is always the same one (a singleton)
-   *
-   * @return the label factory
-   */
+  
   @Override
   public LabelFactory labelFactory() {
     return LabelFactoryHolder.lf;
@@ -176,24 +169,14 @@ public class LabeledConstituent extends SimpleConstituent
   }
 
 
-  /**
-   * Return a factory for this kind of constituent.
-   * The factory returned is always the same one (a singleton).
-   *
-   * @return The constituent factory
-   */
+  
   @Override
   public ConstituentFactory constituentFactory() {
     return ConstituentFactoryHolder.cf;
   }
 
 
-  /**
-   * Return a factory for this kind of constituent.
-   * The factory returned is always the same one (a singleton).
-   *
-   * @return The constituent factory
-   */
+  
   public static ConstituentFactory factory() {
     return ConstituentFactoryHolder.cf;
   }

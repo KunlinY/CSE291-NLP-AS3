@@ -25,23 +25,17 @@
 
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 
-import edu.berkeley.nlp.assignments.parsing.io.EncodingPrintWriter;
-import edu.berkeley.nlp.assignments.parsing.ling.CoreLabel;
-import edu.berkeley.nlp.assignments.parsing.ling.HasContext;
-import edu.berkeley.nlp.assignments.parsing.ling.HasOffset;
-import edu.berkeley.nlp.assignments.parsing.ling.HasTag;
-import edu.berkeley.nlp.assignments.parsing.ling.HasWord;
+import edu.berkeley.nlp.assignments.parsing.ling.*;
 import edu.berkeley.nlp.assignments.parsing.math.SloppyMath;
 import edu.berkeley.nlp.assignments.parsing.parser.KBestViterbiParser;
 import edu.berkeley.nlp.assignments.parsing.parser.common.ParserAnnotations;
 import edu.berkeley.nlp.assignments.parsing.parser.common.ParserConstraint;
+import edu.berkeley.nlp.assignments.parsing.trees.LabeledScoredTreeFactory;
+import edu.berkeley.nlp.assignments.parsing.trees.Tree;
 import edu.berkeley.nlp.assignments.parsing.trees.TreeFactory;
 import edu.berkeley.nlp.assignments.parsing.trees.TreebankLanguagePack;
-import edu.berkeley.nlp.assignments.parsing.trees.Tree;
-import edu.berkeley.nlp.assignments.parsing.trees.LabeledScoredTreeFactory;
-import edu.berkeley.nlp.assignments.parsing.util.*;
 import edu.berkeley.nlp.assignments.parsing.util.PriorityQueue;
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
+import edu.berkeley.nlp.assignments.parsing.util.*;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -59,7 +53,6 @@ import java.util.regex.Matcher;
 public class ExhaustivePCFGParser implements Scorer, KBestViterbiParser  {
 
   /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(ExhaustivePCFGParser.class);
 
   // public static long insideTime = 0;  // for profiling
   // public static long outsideTime = 0;
@@ -315,12 +308,6 @@ public class ExhaustivePCFGParser implements Scorer, KBestViterbiParser  {
   static final boolean dumpTagging = false;
   private long time = System.currentTimeMillis();
 
-  protected void tick(String str) {
-    long time2 = System.currentTimeMillis();
-    long diff = time2 - time;
-    time = time2;
-    log.info("done.  " + diff + "\n" + str);
-  }
 
   protected boolean floodTags = false;
   protected List sentence = null;
@@ -341,22 +328,11 @@ public class ExhaustivePCFGParser implements Scorer, KBestViterbiParser  {
       this.sentence = sentence;
       floodTags = false;
     }
-    if (op.testOptions.verbose) {
-      Timing.tick("Starting pcfg parse.");
-    }
-    if (spillGuts) {
-      tick("Starting PCFG parse...");
-    }
     length = sentence.size();
     if (length > arraySize) {
       considerCreatingArrays(length);
     }
     int goal = stateIndex.indexOf(goalStr);
-    if (op.testOptions.verbose) {
-      // System.out.println(numStates + " states, " + goal + " is the goal state.");
-      // log.info(new ArrayList(ug.coreRules.keySet()));
-      log.info("Initializing PCFG...");
-    }
     // map input words to words array (wordIndex ints)
     words = new int[length];
     beginOffsets = new int[length];
@@ -415,10 +391,6 @@ public class ExhaustivePCFGParser implements Scorer, KBestViterbiParser  {
       //}
     }
 
-    // initialize inside and outside score arrays
-    if (spillGuts) {
-      tick("Wiping arrays...");
-    }
     if (Thread.interrupted()) {
       throw new RuntimeInterruptedException();
     }
@@ -444,35 +416,11 @@ public class ExhaustivePCFGParser implements Scorer, KBestViterbiParser  {
       Arrays.fill(narrowRExtent[loc], length + 1); // the leftmost right with state s starting at i that we can get is the end
       Arrays.fill(wideRExtent[loc], -1); // the rightmost right with state s starting at i that we can get is the beginning
     }
-    // int puncTag = stateIndex.indexOf(".");
-    // boolean lastIsPunc = false;
-    if (op.testOptions.verbose) {
-      Timing.tick("done.");
-      unkWords.append(" ]");
-      op.tlpParams.pw(System.err).println("Unknown words: " + unk + " " + unkWords);
-      log.info("Starting filters...");
-    }
     if (Thread.interrupted()) {
       throw new RuntimeInterruptedException();
     }
-    // do tags
-    if (spillGuts) {
-      tick("Tagging...");
-    }
     initializeChart(sentence);
-    //if (op.testOptions.outsideFilter)
-    // buildOFilter();
-    if (op.testOptions.verbose) {
-      Timing.tick("done.");
-      log.info("Starting insides...");
-    }
-    // do the inside probabilities
     doInsideScores();
-    if (op.testOptions.verbose) {
-      // insideTime += Timing.tick("done.");
-      Timing.tick("done.");
-      System.out.println("PCFG parsing " + length + " words (incl. stop): insideScore = " + iScore[0][length][goal]);
-    }
     bestScore = iScore[0][length][goal];
     boolean succeeded = hasParse();
     if (op.testOptions.doRecovery && !succeeded && !floodTags) {
@@ -483,26 +431,6 @@ public class ExhaustivePCFGParser implements Scorer, KBestViterbiParser  {
     }
     if ( ! op.doDep || op.testOptions.useFastFactored) {
       return succeeded;
-    }
-    if (op.testOptions.verbose) {
-      log.info("Starting outsides...");
-    }
-    // outside scores
-    oScore[0][length][goal] = 0.0f;
-    doOutsideScores();
-    //System.out.println("State rate: "+((int)(1000*ohits/otries))/10.0);
-    //System.out.println("Traversals: "+ohits);
-    if (op.testOptions.verbose) {
-      // outsideTime += Timing.tick("Done.");
-      Timing.tick("done.");
-    }
-
-    if (op.doDep) {
-      initializePossibles();
-    }
-
-    if (Thread.interrupted()) {
-      throw new RuntimeInterruptedException();
     }
 
     return succeeded;
@@ -515,51 +443,13 @@ public class ExhaustivePCFGParser implements Scorer, KBestViterbiParser  {
       floodTags = false;
     }
 
-    if (op.testOptions.verbose)
-      Timing.tick("Doing lattice PCFG parse...");
 
-
-    // The number of whitespace nodes in the lattice
     length = lr.getNumNodes() - 1; //Subtract 1 since considerCreatingArrays will add the final interstice
     if (length > arraySize)
       considerCreatingArrays(length);
 
 
     int goal = stateIndex.indexOf(goalStr);
-//    if (op.testOptions.verbose) {
-//      log.info("Unaries: " + ug.rules());
-//      log.info("Binaries: " + bg.rules());
-//      log.info("Initializing PCFG...");
-//      log.info("   " + numStates + " states, " + goal + " is the goal state.");
-//    }
-
-//    log.info("Tagging states");
-//    for(int i = 0; i < numStates; i++) {
-//      if(isTag[i]) {
-//        int tagId = Numberer.translate(stateSpace, "tags", i);
-//        String tag = (String) tagNumberer.object(tagId);
-//        System.err.printf(" %d: %s\n",i,tag);
-//      }
-//    }
-
-    // Create a map of all words in the lattice
-    //
-//    int numEdges = lr.getNumEdges();
-//    words = new int[numEdges];
-//    offsets = new IntPair[numEdges];
-//
-//    int unk = 0;
-//    int i = 0;
-//    StringBuilder unkWords = new StringBuilder("[");
-//    for (LatticeEdge edge : lr) {
-//      String s = edge.word;
-//      if (op.testOptions.verbose && !lex.isKnown(wordNumberer.number(s))) {
-//        unk++;
-//        unkWords.append(" " + s);
-//      }
-//      words[i++] = wordNumberer.number(s);
-//    }
-
     for (int start = 0; start < length; start++) {
     	for (int end = start + 1; end <= length; end++) {
     		Arrays.fill(iScore[start][end], Float.NEGATIVE_INFINITY);
@@ -581,11 +471,6 @@ public class ExhaustivePCFGParser implements Scorer, KBestViterbiParser  {
     doInsideScores();
     bestScore = iScore[0][length][goal];
 
-    if (op.testOptions.verbose) {
-      Timing.tick("done.");
-      log.info("PCFG " + length + " words (incl. stop) iScore " + bestScore);
-    }
-
     boolean succeeded = hasParse();
 
     // Try a recovery parse
@@ -598,10 +483,6 @@ public class ExhaustivePCFGParser implements Scorer, KBestViterbiParser  {
 
     oScore[0][length][goal] = 0.0f;
     doOutsideScores();
-
-    if (op.testOptions.verbose) {
-      Timing.tick("done.");
-    }
 
     if (op.doDep) {
       initializePossibles();
@@ -829,9 +710,6 @@ oScore[split][end][br.rightChild] = totR;
 
   private void doInsideChartCell(final int diff, final int start) {
     final boolean lengthNormalization = op.testOptions.lengthNormalization;
-    if (spillGuts) {
-      tick("Binaries for span " + diff + " start " + start + " ...");
-    }
     int end = start + diff;
 
     final List<ParserConstraint> constraints = getConstraints();
@@ -926,7 +804,6 @@ oScore[split][end][br.rightChild] = totR;
               continue;
             }
             float tot = pS + lS + rS;
-            if (spillGuts) { log.info("Rule " + rule + " over [" + start + "," + end + ") has log score " + tot + " from L[" + stateIndex.get(leftState) + "=" + leftState + "] = "+ lS  + " R[" + stateIndex.get(rightChild) + "=" + rightChild + "] =  " + rS); }
             if (tot > bestIScore) {
               bestIScore = tot;
             }
@@ -964,7 +841,6 @@ oScore[split][end][br.rightChild] = totR;
         if (foundBetter) { // this way of making "parentState" is better than previous
           iScore_start_end[parentState] = bestIScore;
 
-          if (spillGuts) log.info("Could build " + stateIndex.get(parentState) + " from " + start + " to " + end + " score " + bestIScore);
           if (oldIScore == Float.NEGATIVE_INFINITY) {
             if (start > narrowLExtent_end[parentState]) {
               narrowLExtent_end[parentState] = wideLExtent_end[parentState] = start;
@@ -1094,7 +970,6 @@ oScore[split][end][br.rightChild] = totR;
         } // end if lengthNormalization
         if (foundBetter) { // this way of making "parentState" is better than previous
           iScore_start_end[parentState] = bestIScore;
-          if (spillGuts) log.info("Could build " + stateIndex.get(parentState) + " from " + start + " to " + end + " with score " + bestIScore);
           if (oldIScore == Float.NEGATIVE_INFINITY) {
             if (start > narrowLExtent_end[parentState]) {
               narrowLExtent_end[parentState] = wideLExtent_end[parentState] = start;
@@ -1110,9 +985,6 @@ oScore[split][end][br.rightChild] = totR;
         } // end if foundBetter
       } // for rightRules
     } // for rightState
-    if (spillGuts) {
-      tick("Unaries for span " + diff + "...");
-    }
     // do unary rules -- one could promote this loop and put start inside
     for (int state = 0; state < numStates; state++) {
       float iS = iScore_start_end[state];
@@ -1159,7 +1031,6 @@ oScore[split][end][br.rightChild] = totR;
           foundBetter = (tot > cur);
         }
         if (foundBetter) {
-          if (spillGuts) log.info("Could build " + stateIndex.get(parentState) + " from " + start + " to " + end + " with score " + tot);
           iScore_start_end[parentState] = tot;
           if (cur == Float.NEGATIVE_INFINITY) {
             if (start > narrowLExtent_end[parentState]) {
@@ -1319,9 +1190,6 @@ oScore[split][end][br.rightChild] = totR;
         if ( ! floodTags || word == boundary) {
           // in this case we generate the taggings in the lexicon,
           // which may itself be tagging flexibly or using a strict lexicon.
-          if (dumpTagging) {
-            EncodingPrintWriter.err.println("Normal tagging " + wordIndex.get(word) + " [" + word + "]", "UTF-8");
-          }
           for (Iterator<IntTaggedWord> taggingI = lex.ruleIteratorByWord(word, start, wordContextStr); taggingI.hasNext(); ) {
             IntTaggedWord tagging = taggingI.next();
             int state = stateIndex.indexOf(tagIndex.get(tagging.tag));
@@ -1330,18 +1198,14 @@ oScore[split][end][br.rightChild] = totR;
             if (trueTagStr != null) {
               if ((!op.testOptions.forceTagBeginnings && !tlp.basicCategory(tagging.tagString(tagIndex)).equals(trueTagStr)) ||
                   (op.testOptions.forceTagBeginnings &&  !tagging.tagString(tagIndex).startsWith(trueTagStr))) {
-                if (dumpTagging) {
-                  EncodingPrintWriter.err.println("  Skipping " + tagging + " as it doesn't match trueTagStr: " + trueTagStr, "UTF-8");
-                }
+
                 continue;
               }
             }
             if (candidateTagRegex != null) {
               if ((!op.testOptions.forceTagBeginnings && !tlp.basicCategory(tagging.tagString(tagIndex)).matches(candidateTagRegex)) ||
                   (op.testOptions.forceTagBeginnings &&  !tagging.tagString(tagIndex).matches(candidateTagRegex))) {
-                if (dumpTagging) {
-                  EncodingPrintWriter.err.println("  Skipping " + tagging + " as it doesn't match candidateTagRegex: " + candidateTagRegex, "UTF-8");
-                }
+
                 continue;
               }
             }
@@ -1361,9 +1225,6 @@ oScore[split][end][br.rightChild] = totR;
             // }
             int tag = tagging.tag;
             tags[start][tag] = true;
-            if (dumpTagging) {
-              EncodingPrintWriter.err.println("Word pos " + start + " tagging " + tagging + " score " + iScore_start_end[state] + " [state " + stateIndex.get(state) + " = " + state + "]", "UTF-8");
-            }
             //if (start == length-2 && tagging.parent == puncTag)
             //  lastIsPunc = true;
           }
@@ -1376,9 +1237,6 @@ oScore[split][end][br.rightChild] = totR;
           // Here, we give words all tags for
           // which the lexicon score is not -Inf, not just seen or
           // specified taggings
-          if (dumpTagging) {
-            EncodingPrintWriter.err.println("Forced FlexiTagging " + wordIndex.get(word), "UTF-8");
-          }
           for (int state = 0; state < numStates; state++) {
             if (isTag[state] && iScore_start_end[state] == Float.NEGATIVE_INFINITY) {
               if (trueTagStr != null) {
@@ -1403,9 +1261,6 @@ oScore[split][end][br.rightChild] = totR;
                 wideRExtent_start[state] = end;
                 wideLExtent_end[state] = start;
               }
-              if (dumpTagging) {
-                EncodingPrintWriter.err.println("Word pos " + start + " tagging " + (new IntTaggedWord(word, tagIndex.indexOf(stateIndex.get(state)))) + " score " + iScore_start_end[state]  + " [state " + stateIndex.get(state) + " = " + state + "]", "UTF-8");
-              }
             }
           }
         } // end if ! assignedSomeTag
@@ -1424,9 +1279,6 @@ oScore[split][end][br.rightChild] = totR;
           // a score of -1000, by fiat.  You get here from the invocation of
           // parse(ls) inside parse(ls) *after* floodTags has been turned on.
           // Search above for "floodTags = true".
-          if (dumpTagging) {
-            EncodingPrintWriter.err.println("Flooding tags for " + wordIndex.get(word), "UTF-8");
-          }
           for (int state = 0; state < numStates; state++) {
             if (isTag[state] && iScore_start_end[state] == Float.NEGATIVE_INFINITY) {
               iScore_start_end[state] = -1000.0f;
@@ -1439,9 +1291,6 @@ oScore[split][end][br.rightChild] = totR;
         }
 
         // Apply unary rules in diagonal cells of chart
-        if (spillGuts) {
-          tick("Terminal Unary...");
-        }
         for (int state = 0; state < numStates; state++) {
           float iS = iScore_start_end[state];
           if (iS == Float.NEGATIVE_INFINITY) {
@@ -1460,9 +1309,6 @@ oScore[split][end][br.rightChild] = totR;
               wideLExtent_end[parentState] = start;
             }
           }
-        }
-        if (spillGuts) {
-          tick("Next word...");
         }
       }
     } // end for start
@@ -1506,12 +1352,6 @@ oScore[split][end][br.rightChild] = totR;
   public Tree getBestParse() {
     Tree internalTree = extractBestParse(goalStr, 0, length);
     //System.out.println("Got internal best parse...");
-    if (internalTree == null) {
-      log.info("Warning: no parse found in ExhaustivePCFGParser.extractBestParse");
-    } // else {
-      // restoreUnaries(internalTree);
-    // }
-    // System.out.println("Restored unaries...");
     return internalTree;
     //TreeTransformer debinarizer = BinarizerFactory.getDebinarizer();
     //return debinarizer.transformTree(internalTree);
@@ -1647,7 +1487,6 @@ oScore[split][end][br.rightChild] = totR;
         return result;
       }
     }
-    log.info("Warning: no parse found in ExhaustivePCFGParser.extractBestParse: failing on: [" + start + ", " + end + "] looking for " + goalStr);
     return null;
   }
 
@@ -1749,9 +1588,6 @@ oScore[split][end][br.rightChild] = totR;
           bestTrees.add(result);
         }
       }
-    }
-    if (bestTrees.isEmpty()) {
-      log.info("Warning: no parse found in ExhaustivePCFGParser.extractBestParse: failing on: [" + start + ", " + end + "] looking for " + goalStr);
     }
     return bestTrees;
   }
@@ -1997,39 +1833,7 @@ oScore[split][end][br.rightChild] = totR;
   private Map<Vertex,LinkedList<Derivation>> dHat = Generics.newHashMap();
 
   private PriorityQueue<Derivation> getCandidates(Vertex v, int k) {
-    PriorityQueue<Derivation> candV = cand.get(v);
-    if (candV == null) {
-      candV = new BinaryHeapPriorityQueue<>();
-      List<Arc> bsV = getBackwardsStar(v);
-
-      for (Arc arc : bsV) {
-        int size = arc.size();
-        double score = arc.ruleScore;
-        List<Double> childrenScores = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-          Vertex child = arc.tails.get(i);
-          double s = iScore[child.start][child.end][child.goal];
-          childrenScores.add(s);
-          score += s;
-        }
-        if (score == Double.NEGATIVE_INFINITY) { continue; }
-        List<Integer> j = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-          j.add(1);
-        }
-        Derivation d = new Derivation(arc, j, score, childrenScores);
-        candV.add(d, score);
-      }
-      PriorityQueue<Derivation> tmp = new BinaryHeapPriorityQueue<>();
-      for (int i = 0; i < k; i++) {
-        if (candV.isEmpty()) { break; }
-        Derivation d = candV.removeFirst();
-        tmp.add(d, d.score);
-      }
-      candV = tmp;
-      cand.put(v, candV);
-    }
-    return candV;
+    return null;
   }
 
   // note: kPrime is the original k
@@ -2175,9 +1979,6 @@ oScore[split][end][br.rightChild] = totR;
         throw e;
       }
       arraySize = length + 1;
-      if (op.testOptions.verbose) {
-        log.info("Created PCFG parser arrays of size " + arraySize);
-      }
     }
   }
 

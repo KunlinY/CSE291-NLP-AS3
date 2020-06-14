@@ -1,8 +1,5 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
-import edu.berkeley.nlp.assignments.parsing.trees.TreePrint;
-import edu.berkeley.nlp.assignments.parsing.trees.TreebankLanguagePack;
 
 import java.io.Serializable;
 import java.util.Properties;
@@ -21,8 +18,6 @@ import java.util.Properties;
  */
 public class TestOptions implements Serializable  {
 
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(TestOptions.class);
 
   static final String DEFAULT_PRE_TAGGER =
     "/u/nlp/data/pos-tagger/distrib/wsj-0-18-bidirectional-nodistsim.tagger";
@@ -284,21 +279,9 @@ public class TestOptions implements Serializable  {
    */
   public boolean quietEvaluation = false;
 
-  /**
-   * Determines method for print trees on output.
-   *
-   * @param tlpParams The treebank parser params
-   * @return A suitable tree printing object
-   */
-  public TreePrint treePrint(TreebankLangParserParams tlpParams) {
-    TreebankLanguagePack tlp = tlpParams.treebankLanguagePack();
-    return new TreePrint(outputFormat, outputFormatOptions, tlp, tlpParams.headFinder(), tlpParams.typedDependencyHeadFinder());
-  }
-
 
   public void display() {
     String str = toString();
-    log.info(str);
   }
 
   @Override

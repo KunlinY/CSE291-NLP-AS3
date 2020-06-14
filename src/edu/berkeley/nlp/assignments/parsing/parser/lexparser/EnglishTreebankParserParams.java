@@ -25,17 +25,13 @@
 
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Predicate;
-
-import edu.berkeley.nlp.assignments.parsing.io.RuntimeIOException;
 import edu.berkeley.nlp.assignments.parsing.ling.*;
 import edu.berkeley.nlp.assignments.parsing.trees.*;
 import edu.berkeley.nlp.assignments.parsing.util.Index;
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -47,9 +43,6 @@ import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
  */
 
 public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
-
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(EnglishTreebankParserParams.class);
 
   protected class EnglishSubcategoryStripper implements TreeTransformer {
 
@@ -167,59 +160,18 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
 
   @Override
   public HeadFinder typedDependencyHeadFinder() {
-    if (generateOriginalDependencies) {
-      return new SemanticHeadFinder(treebankLanguagePack(), !englishTest.makeCopulaHead);
-    } else {
-      return new UniversalSemanticHeadFinder(treebankLanguagePack(), !englishTest.makeCopulaHead);
-    }
+    return null;
   }
 
 
-  /**
-   * Allows you to read in trees from the source you want.  It's the
-   * responsibility of treeReaderFactory() to deal properly with character-set
-   * encoding of the input.  It also is the responsibility of tr to properly
-   * normalize trees.
-   */
-  @Override
-  public DiskTreebank diskTreebank() {
-    return new DiskTreebank(treeReaderFactory());
-  }
-
-
-  /**
-   * Allows you to read in trees from the source you want.  It's the
-   * responsibility of treeReaderFactory() to deal properly with character-set
-   * encoding of the input.  It also is the responsibility of tr to properly
-   * normalize trees.
-   */
-  @Override
-  public MemoryTreebank memoryTreebank() {
-    return new MemoryTreebank(treeReaderFactory());
-  }
-
-
-  /**
-   * Makes appropriate TreeReaderFactory with all options specified
-   */
+  
   @Override
   public TreeReaderFactory treeReaderFactory() {
-    return in -> new PennTreeReader(in, new LabeledScoredTreeFactory(), new NPTmpRetainingTreeNormalizer(englishTrain.splitTMP, englishTrain.splitSGapped == 5, englishTrain.leaveItAll, englishTrain.splitNPADV >= 1, headFinder()));
+    return null;
   }
 
 
-  /**
-   * returns a MemoryTreebank appropriate to the testing treebank source
-   */
-  @Override
-  public MemoryTreebank testMemoryTreebank() {
-    return new MemoryTreebank(in -> new PennTreeReader(in, new LabeledScoredTreeFactory(), new BobChrisTreeNormalizer(tlp)));
-  }
-
-  /**
-   * The tree transformer used to produce trees for evaluation.  It will
-   * be applied both to the parser output and the gold tree.
-   */
+  
   @Override
   public TreeTransformer collinizer() {
     return new TreeCollinizer(tlp, true, englishTrain.splitBaseNP == 2, englishTrain.collapseWhCategories);
@@ -230,11 +182,7 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
     return new TreeCollinizer(tlp, true, englishTrain.splitBaseNP == 2, englishTrain.collapseWhCategories);
   }
 
-  /**
-   * contains Treebank-specific (but not parser-specific) info such
-   * as what is punctuation, and also information about the structure
-   * of labels
-   */
+  
   @Override
   public TreebankLanguagePack treebankLanguagePack() {
     return tlp;
@@ -272,11 +220,7 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
     }
   }
 
-  /**
-   * Returns a TreeTransformer appropriate to the Treebank which
-   * can be used to remove functional tags (such as "-TMP") from
-   * categories.
-   */
+  
   @Override
   public TreeTransformer subcategoryStripper() {
     return new EnglishSubcategoryStripper();
@@ -301,9 +245,7 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
     /* THESE OPTIONS ARE ENGLISH-SPECIFIC AND AFFECT ONLY TRAIN TIME */
     EnglishTrain() {}
 
-    /**
-     * if true, leave all PTB (functional tag) annotations (bad)
-     */
+    
     public int leaveItAll = 0;
 
     /**
@@ -329,16 +271,10 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
      */
     public boolean splitSFP = false;
 
-    /**
-     * Mark the nouns that are percent signs.  Slightly good.
-     */
+    
     public boolean splitPercent = false;
 
-    /**
-     * Mark phrases that are headed by %.
-     * A value of 0 = do nothing, 1 = only NP, 2 = NP and ADJP,
-     * 3 = NP, ADJP and QP, 4 = any phrase.
-     */
+    
     public int splitNPpercent = 0;
 
     /** Grand parent annotate RB to try to distinguish sentential ones and
@@ -352,39 +288,22 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
      */
     public int splitNNP = 0;
 
-    /**
-     * Join pound with dollar.
-     */
+    
     public boolean joinPound = false;
 
-    /**
-     * Joint comparative and superlative adjective with positive.
-     */
+    
     public boolean joinJJ = false;
 
-    /**
-     * Join proper nouns with common nouns. This isn't to improve
-     * performance, but because Genia doesn't use proper noun tags in
-     * general.
-     */
+    
     public boolean joinNounTags = false;
 
-    /**
-     * A special test for "such" mainly ("such as Fred"). A wash, so omit
-     */
+    
     public boolean splitPPJJ = false;
 
-    /**
-     * Put a special tag on 'transitive adjectives' with NP complement, like
-     * 'due May 15' -- it also catches 'such' in 'such as NP', which may
-     * be a good.  Matches 658 times in 2-21 training corpus. Wash.
-     */
+    
     public boolean splitTRJJ = false;
 
-    /**
-     * Put a special tag on 'adjectives with complements'.  This acts as a
-     * general subcat feature for adjectives.
-     */
+    
     public boolean splitJJCOMP = false;
 
     /**
@@ -393,25 +312,15 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
      */
     public boolean splitMoreLess = false;
 
-    /**
-     * Mark "Intransitive" DT.  Good.
-     */
+    
     public boolean unaryDT = false;//true;
-    /**
-     * Mark "Intransitive" RB.  Good.
-     */
+    
     public boolean unaryRB = false;//true;
-    /**
-     * "Intransitive" PRP. Wash -- basically a no-op really.
-     */
+    
     public boolean unaryPRP = false;
-    /**
-     * Mark reflexive PRP words.
-     */
+    
     public boolean markReflexivePRP = false;
-    /**
-     * Mark "Intransitive" IN. Minutely negative.
-     */
+    
     public boolean unaryIN = false;
 
     /** Provide annotation of conjunctions.  Gives modest gains (numbers
@@ -423,14 +332,9 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
      */
     public int splitCC = 0;
 
-    /**
-     * Annotates forms of "not" specially as tag "NOT". BAD
-     */
+    
     public boolean splitNOT = false;
-    /**
-     * Split modifier (NP, AdjP) adverbs from others.
-     * This does nothing if you're already doing tagPA.
-     */
+    
     public boolean splitRB = false;
 
     /**
@@ -454,39 +358,15 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
      */
     public int splitAux = 0;
 
-    /**
-     * Pitiful attempt at marking V* preterms with their surface subcat
-     * frames.  Bad so far.
-     */
+    
     public boolean vpSubCat = false;
-    /**
-     * Attempt to record ditransitive verbs.  The value 0 means do nothing;
-     * 1 records two or more NP or S* arguments, and 2 means to only record
-     * two or more NP arguments (that aren't NP-TMP).
-     * 1 gave neutral to bad results.
-     */
+    
     public int markDitransV = 0;
 
-    /**
-     * Add (head) tags to VPs.  An argument of
-     * 0 = no head-subcategorization of VPs,
-     * 1 = add head tags (anything, as given by HeadFinder),
-     * 2 = add head tags, but collapse finite verb tags (VBP, VBD, VBZ, MD)
-     *     together,
-     * 3 = only annotate verbal tags, and collapse finite verb tags
-     *     (annotation is VBF, TO, VBG, VBN, VB, or zero),
-     * 4 = only split on categories of VBF, TO, VBG, VBN, VB, and map
-     *     cases that are not headed by a verbal category to an appropriate
-     *     category based on word suffix (ing, d, t, s, to) or to VB otherwise.
-     * We usually use a value of 3; 2 or 3 is much better than 0.
-     * See also {@code splitVPNPAgr}. If it is true, its effects override
-     * any value set for this parameter.
-     */
+    
     public int splitVP = 0;
 
-    /**
-     * Put enough marking on VP and NP to permit "agreement".
-     */
+    
     public boolean splitVPNPAgr = false;
 
     /**
@@ -505,20 +385,13 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
 
     public boolean splitNPPRP = false;
 
-    /**
-     * Verbal distance -- mark whether symbol dominates a verb (V*, MD).
-     * Very good.
-     */
+    
     public int dominatesV = 0;
 
-    /**
-     * Verbal distance -- mark whether symbol dominates a preposition (IN)
-     */
+    
     public boolean dominatesI = false;
 
-    /**
-     * Verbal distance -- mark whether symbol dominates a conjunction (CC)
-     */
+    
     public boolean dominatesC = false;
 
     /**
@@ -531,31 +404,13 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
      */
     public int markCC = 0;
 
-    /**
-     * Mark specially S nodes with "gapped" subject (control, raising).
-     * 1 is basic version.  2 is better mark S nodes with "gapped" subject.
-     * 3 seems best on small training set, but all of these are too similar;
-     * 4 can't be differentiated.
-     * 5 is done on tree before empty splitting. (Bad!?)
-     */
+    
     public int splitSGapped = 0;
 
-    /**
-     * Mark "numeric NPs".  Probably bad?
-     */
+    
     public boolean splitNumNP = false;
 
-    /**
-     * Give a special tag to NPs which are possessive NPs (end in 's).
-     * A value of 0 means do nothing, 1 means tagging possessive NPs with
-     * "-P", 2 means restructure possessive NPs so that they introduce a
-     * POSSP node that
-     * takes as children the POS and a regularly structured NP.
-     * I.e., recover standard good linguistic practice circa 1985.
-     * This seems a good idea, but is almost a no-op (modulo fine points of
-     * markovization), since the previous NP-P phrase already uniquely
-     * captured what is now a POSSP.
-     */
+    
     public int splitPoss = 0;
 
     /**
@@ -570,12 +425,6 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
      */
     public int splitBaseNP = 0;
 
-    /**
-     * Retain NP-TMP (or maybe PP-TMP) annotation.  Good.
-     * The values for this parameter are defined in
-     * NPTmpRetainingTreeNormalizer.
-     */
-    public int splitTMP = NPTmpRetainingTreeNormalizer.TEMPORAL_NONE;
 
     /** Split SBAR nodes.
      *  1 = mark 'in order to' purpose clauses; this is actually a small and
@@ -589,43 +438,25 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
      */
     public int splitSbar = 0;
 
-    /**
-     * Retain NP-ADV annotation.  0 means strip "-ADV" annotation.  1 means to
-     * retain it, and to percolate it down to a head tag providing it can
-     * do it through a path of only NP nodes.
-     */
+    
     public int splitNPADV = 0;
 
-    /**
-     * Mark NP-NNP.  0 is nothing; 1 is only NNP head, 2 is NNP and NNPS
-     * head; 3 is NNP or NNPS anywhere in local NP.  All bad!
-     */
+    
     public int splitNPNNP = 0;
 
-    /**
-     * 'Correct' tags to produce verbs in VPs, etc. where possible
-     */
+    
     public boolean correctTags = false;
 
-    /**
-     * Right edge has a phrasal node.  Bad?
-     */
+    
     public boolean rightPhrasal = false;
 
-    /**
-     * Set the support * KL cutoff level (1-4) for sister splitting
-     * -- don't use it, as far as we can tell so far
-     */
+    
     public int sisterSplitLevel = 1;
 
-    /**
-     * Grand-parent annotate (root mark) VP below ROOT.  Seems negative.
-     */
+    
     public boolean gpaRootVP = false;
 
-    /**
-     * Change TO inside PP to IN.
-     */
+    
     public int makePPTOintoIN = 0;
 
     /** Collapse WHPP with PP, etc., in training and perhaps in evaluation.
@@ -636,8 +467,6 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
     public int collapseWhCategories = 0;
 
     public void display() {
-      String englishParams = "Using EnglishTreebankParserParams" + " splitIN=" + splitIN + " sPercent=" + splitPercent + " sNNP=" + splitNNP + " sQuotes=" + splitQuotes + " sSFP=" + splitSFP + " rbGPA=" + tagRBGPA + " j#=" + joinPound + " jJJ=" + joinJJ + " jNounTags=" + joinNounTags + " sPPJJ=" + splitPPJJ + " sTRJJ=" + splitTRJJ + " sJJCOMP=" + splitJJCOMP + " sMoreLess=" + splitMoreLess + " unaryDT=" + unaryDT + " unaryRB=" + unaryRB + " unaryPRP=" + unaryPRP + " reflPRP=" + markReflexivePRP + " unaryIN=" + unaryIN + " sCC=" + splitCC + " sNT=" + splitNOT + " sRB=" + splitRB + " sAux=" + splitAux + " vpSubCat=" + vpSubCat + " mDTV=" + markDitransV + " sVP=" + splitVP + " sVPNPAgr=" + splitVPNPAgr + " sSTag=" + splitSTag + " mVP=" + markContainedVP + " sNP%=" + splitNPpercent + " sNPPRP=" + splitNPPRP + " dominatesV=" + dominatesV + " dominatesI=" + dominatesI + " dominatesC=" + dominatesC + " mCC=" + markCC + " sSGapped=" + splitSGapped + " numNP=" + splitNumNP + " sPoss=" + splitPoss + " baseNP=" + splitBaseNP + " sNPNNP=" + splitNPNNP + " sTMP=" + splitTMP + " sNPADV=" + splitNPADV + " cTags=" + correctTags + " rightPhrasal=" + rightPhrasal + " gpaRootVP=" + gpaRootVP + " splitSbar=" + splitSbar + " mPPTOiIN=" + makePPTOintoIN + " cWh=" + collapseWhCategories;
-      log.info(englishParams);
     }
 
     private static final long serialVersionUID = 1831576434872643L;
@@ -647,23 +476,7 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
   private static final TreeFactory categoryWordTagTreeFactory =
     new LabeledScoredTreeFactory(new CategoryWordTagFactory());
 
-  /**
-   * This method does language-specific tree transformations such
-   * as annotating particular nodes with language-relevant features.
-   * Such parameterizations should be inside the specific
-   * TreebankLangParserParams class.  This method is recursively
-   * applied to each node in the tree (depth first, left-to-right),
-   * so you shouldn't write this method to apply recursively to tree
-   * members.  This method is allowed to (and in some cases does)
-   * destructively change the input tree {@code t}. It changes both
-   * labels and the tree shape.
-   *
-   * @param t The input tree (with non-language-specific annotation already
-   *           done, so you need to strip back to basic categories)
-   * @param root The root of the current tree (can be null for words)
-   * @return The fully annotated tree node (with daughters still as you
-   *           want them in the final result)
-   */
+  
   @Override
   public Tree transformTree(Tree t, Tree root) {
     if (t == null || t.isLeaf()) {
@@ -1558,7 +1371,6 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
               cat = cat + "-" + baseTag;
               break;
             default:
-              log.info("XXXX Head of " + t + " is " + word + "/" + baseTag);
               break;
           }
         } else if (englishTrain.splitVP == 3 || englishTrain.splitVP == 4) {
@@ -1682,7 +1494,6 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
             cat += "-PL";
           }
         } else {
-          log.info("XXXX Head of " + t + " is " + word + "/" + baseTag);
         }
       }
       if (englishTrain.splitSTag > 0 &&
@@ -1828,7 +1639,6 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
           // add POS dtr
           Tree last = oldKids.get(oldKids.size() - 1);
           if ( ! last.value().equals("POS^NP")) {
-            log.info("Unexpected POS value (!): " + last);
           }
           last.setValue("POS^POSSP");
           newerChildren.add(last);
@@ -2054,267 +1864,10 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
   }
 
 
-  /**
-   * Set language-specific options according to flags.
-   * This routine should process the option starting in args[i] (which
-   * might potentially be several arguments long if it takes arguments).
-   * It should return the index after the last index it consumed in
-   * processing.  In particular, if it cannot process the current option,
-   * the return value should be i.
-   */
+  
   @Override
   public int setOptionFlag(String[] args, int i) {
-    // [CDM 2008: there are no generic options!] first, see if it's a generic option
-    // int j = super.setOptionFlag(args, i);
-    // if(i != j) return j;
-
-    //lang. specific options
-    if (args[i].equalsIgnoreCase("-splitIN")) {
-      englishTrain.splitIN = Integer.parseInt(args[i + 1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitPercent")) {
-      englishTrain.splitPercent = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-splitQuotes")) {
-      englishTrain.splitQuotes = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-splitSFP")) {
-      englishTrain.splitSFP = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-splitNNP")) {
-      englishTrain.splitNNP = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-rbGPA")) {
-      englishTrain.tagRBGPA = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-splitTRJJ")) {
-      englishTrain.splitTRJJ = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-splitJJCOMP")) {
-      englishTrain.splitJJCOMP = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-splitMoreLess")) {
-      englishTrain.splitMoreLess = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-unaryDT")) {
-      englishTrain.unaryDT = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-unaryRB")) {
-      englishTrain.unaryRB = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-unaryIN")) {
-      englishTrain.unaryIN = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-markReflexivePRP")) {
-      englishTrain.markReflexivePRP = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-splitCC") && i + 1 < args.length) {
-      englishTrain.splitCC = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitRB")) {
-      englishTrain.splitRB = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-splitAux") && i+1 < args.length) {
-      englishTrain.splitAux = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitSbar") && i+1 < args.length) {
-      englishTrain.splitSbar = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitVP") && i + 1 < args.length) {
-      englishTrain.splitVP = Integer.parseInt(args[i + 1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitVPNPAgr")) {
-      englishTrain.splitVPNPAgr = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-gpaRootVP")) {
-      englishTrain.gpaRootVP = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-makePPTOintoIN")) {
-      englishTrain.makePPTOintoIN = Integer.parseInt(args[i + 1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-collapseWhCategories") && i + 1 < args.length) {
-      englishTrain.collapseWhCategories = Integer.parseInt(args[i + 1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitSTag")) {
-      englishTrain.splitSTag = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitSGapped") && (i + 1 < args.length)) {
-      englishTrain.splitSGapped = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitNPpercent") && (i+1 < args.length)) {
-      englishTrain.splitNPpercent = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitNPPRP")) {
-      englishTrain.splitNPPRP = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-dominatesV") && (i+1 < args.length)) {
-      englishTrain.dominatesV = Integer.parseInt(args[i + 1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-dominatesI")) {
-      englishTrain.dominatesI = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-dominatesC")) {
-      englishTrain.dominatesC = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-splitNPNNP") && (i+1 < args.length)) {
-      englishTrain.splitNPNNP = Integer.parseInt(args[i + 1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitTMP") && (i + 1 < args.length)) {
-      englishTrain.splitTMP = Integer.parseInt(args[i + 1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitNPADV") && (i+1 < args.length)) {
-      englishTrain.splitNPADV = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-markContainedVP")) {
-      englishTrain.markContainedVP = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-markDitransV") && (i+1 < args.length)) {
-      englishTrain.markDitransV = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-splitPoss") && (i+1 < args.length)) {
-      englishTrain.splitPoss = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-baseNP") && (i+1 < args.length)) {
-      englishTrain.splitBaseNP = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-joinNounTags")) {
-      englishTrain.joinNounTags = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-correctTags")) {
-      englishTrain.correctTags = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-noCorrectTags")) {
-      englishTrain.correctTags = false;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-markCC") && (i + 1 < args.length)) {
-      englishTrain.markCC = Integer.parseInt(args[i+1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-noAnnotations")) {
-      englishTrain.splitVP = 0;
-      englishTrain.splitTMP = NPTmpRetainingTreeNormalizer.TEMPORAL_NONE;
-      englishTrain.splitSGapped = 0;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-retainNPTMPSubcategories")) {
-      englishTest.retainNPTMPSubcategories = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-retainTMPSubcategories")) {
-      englishTest.retainTMPSubcategories = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-retainADVSubcategories")) {
-      englishTest.retainADVSubcategories = true;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-leaveItAll") && (i + 1 < args.length)) {
-      englishTrain.leaveItAll = Integer.parseInt(args[i + 1]);
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-headFinder") && (i + 1 < args.length)) {
-      try {
-        headFinder = (HeadFinder) Class.forName(args[i + 1]).newInstance();
-      } catch (Exception e) {
-        log.info("Error: Unable to load HeadFinder; default HeadFinder will be used.");
-        e.printStackTrace();
-      }
-      i += 2;
-    } else if (args[i].equalsIgnoreCase("-makeCopulaHead")) {
-      englishTest.makeCopulaHead = true;
-      i += 1;
-    } else if(args[i].equalsIgnoreCase("-originalDependencies")) {
-      setGenerateOriginalDependencies(true);
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-acl03pcfg")) {
-      englishTrain.splitIN = 3;
-      englishTrain.splitPercent = true;
-      englishTrain.splitPoss = 1;
-      englishTrain.splitCC = 2;
-      englishTrain.unaryDT = true;
-      englishTrain.unaryRB = true;
-      englishTrain.splitAux = 1;
-      englishTrain.splitVP = 2;
-      englishTrain.splitSGapped = 3;
-      englishTrain.dominatesV = 1;
-      englishTrain.splitTMP = NPTmpRetainingTreeNormalizer.TEMPORAL_ACL03PCFG;
-      englishTrain.splitBaseNP = 1;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-jenny")) {
-      englishTrain.splitIN = 3;
-      englishTrain.splitPercent = true;
-      englishTrain.splitPoss = 1;
-      englishTrain.splitCC = 2;
-      englishTrain.unaryDT = true;
-      englishTrain.unaryRB = true;
-      englishTrain.splitAux = 1;
-      englishTrain.splitVP = 2;
-      englishTrain.splitSGapped = 3;
-      englishTrain.dominatesV = 1;
-      englishTrain.splitTMP = NPTmpRetainingTreeNormalizer.TEMPORAL_ACL03PCFG;
-      englishTrain.splitBaseNP = 1;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-linguisticPCFG")) {
-      englishTrain.splitIN = 3;
-      englishTrain.splitPercent = true;
-      englishTrain.splitPoss = 1;
-      englishTrain.splitCC = 2;
-      englishTrain.unaryDT = true;
-      englishTrain.unaryRB = true;
-      englishTrain.splitAux = 2;
-      englishTrain.splitVP = 3;
-      englishTrain.splitSGapped = 4;
-      englishTrain.dominatesV = 0;  // not for linguistic
-      englishTrain.splitTMP = NPTmpRetainingTreeNormalizer.TEMPORAL_ACL03PCFG;
-      englishTrain.splitBaseNP = 1;
-      englishTrain.splitMoreLess = true;
-      englishTrain.correctTags = true;  // different from acl03pcfg
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-goodPCFG")) {
-      englishTrain.splitIN = 4;  // different from acl03pcfg
-      englishTrain.splitPercent = true;
-      englishTrain.splitNPpercent = 0;  // no longer different from acl03pcfg
-      englishTrain.splitPoss = 1;
-      englishTrain.splitCC = 1;
-      englishTrain.unaryDT = true;
-      englishTrain.unaryRB = true;
-      englishTrain.splitAux = 2;   // different from acl03pcfg
-      englishTrain.splitVP = 3;   // different from acl03pcfg
-      englishTrain.splitSGapped = 4;
-      englishTrain.dominatesV = 1;
-      englishTrain.splitTMP = NPTmpRetainingTreeNormalizer.TEMPORAL_ACL03PCFG;
-      englishTrain.splitNPADV = 1; // different from acl03pcfg
-      englishTrain.splitBaseNP = 1;
-      // englishTrain.splitMoreLess = true;   // different from acl03pcfg
-      englishTrain.correctTags = true;  // different from acl03pcfg
-      englishTrain.markDitransV = 2; // different from acl03pcfg
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-ijcai03")) {
-      englishTrain.splitIN = 3;
-      englishTrain.splitPercent = true;
-      englishTrain.splitPoss = 1;
-      englishTrain.splitCC = 2;
-      englishTrain.unaryDT = false;
-      englishTrain.unaryRB = false;
-      englishTrain.splitAux = 0;
-      englishTrain.splitVP = 2;
-      englishTrain.splitSGapped = 4;
-      englishTrain.dominatesV = 0;
-      englishTrain.splitTMP = NPTmpRetainingTreeNormalizer.TEMPORAL_ACL03PCFG;
-      englishTrain.splitBaseNP = 1;
-      i += 1;
-    } else if (args[i].equalsIgnoreCase("-goodFactored")) {
-      englishTrain.splitIN = 3;
-      englishTrain.splitPercent = true;
-      englishTrain.splitPoss = 1;
-      englishTrain.splitCC = 2;
-      englishTrain.unaryDT = false;
-      englishTrain.unaryRB = false;
-      englishTrain.splitAux = 0;
-      englishTrain.splitVP = 3;  // different from ijcai03
-      englishTrain.splitSGapped = 4;
-      englishTrain.dominatesV = 0;
-      englishTrain.splitTMP = NPTmpRetainingTreeNormalizer.TEMPORAL_ACL03PCFG;
-      englishTrain.splitBaseNP = 1;
-      // BAD!! englishTrain.markCC = 1;  // different from ijcai03
-      englishTrain.correctTags = true;  // different from ijcai03
-      i += 1;
-    }
-    return i;
+    return 1;
   }
 
 
@@ -2330,34 +1883,6 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
   }
 
   @Override
-  public List<GrammaticalStructure>
-    readGrammaticalStructureFromFile(String filename)
-  {
-    try {
-      if (generateOriginalDependencies) {
-        return EnglishGrammaticalStructure.
-            readCoNLLXGrammaticalStructureCollection(filename);
-      } else {
-        return UniversalEnglishGrammaticalStructure.
-            readCoNLLXGrammaticalStructureCollection(filename);
-      }
-    } catch (IOException e) {
-      throw new RuntimeIOException(e);
-    }
-  }
-
-  @Override
-  public GrammaticalStructure getGrammaticalStructure(Tree t,
-                                                      Predicate<String> filter,
-                                                      HeadFinder hf) {
-    if (generateOriginalDependencies) {
-      return new EnglishGrammaticalStructure(t, filter, hf);
-    } else {
-      return new UniversalEnglishGrammaticalStructure(t, filter, hf);
-    }
-  }
-
-  @Override
   public boolean supportsBasicDependencies() {
     return true;
   }
@@ -2367,15 +1892,6 @@ public class EnglishTreebankParserParams extends AbstractTreebankParserParams  {
   @Override
   public String[] defaultCoreNLPFlags() {
     return RETAIN_TMP_ARGS;
-  }
-
-  public static void main(String[] args) {
-    TreebankLangParserParams tlpp = new EnglishTreebankParserParams();
-    Treebank tb = tlpp.memoryTreebank();
-    tb.loadPath(args[0]);
-    for (Tree t : tb) {
-      t.pennPrint();
-    }
   }
 
   private static final long serialVersionUID = 4153878351331522581L;

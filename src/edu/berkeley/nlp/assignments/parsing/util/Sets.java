@@ -5,11 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 
-/**
- * Utilities for sets.
- *
- * @author Roger Levy, Bill MacCartney
- */
+
 public class Sets {
 
   // private to prevent instantiation
@@ -29,9 +25,7 @@ public class Sets {
     return s;
   }
 
-  /**
-   * Returns the difference of sets s1 and s2.
-   */
+  
   public static <E> Set<E> diff(Set<E> s1, Set<E> s2) {
     Set<E> s = Generics.newHashSet();
     for (E o : s1) {
@@ -42,9 +36,7 @@ public class Sets {
     return s;
   }
 
-  /**
-   * Returns the symmetric difference of sets s1 and s2 (i.e. all elements that are in only one of the two sets)
-   */
+  
   public static <E> Set<E> symmetricDiff(Set<E> s1, Set<E> s2) {
     Set<E> s = Generics.newHashSet();
     for (E o : s1) {
@@ -60,9 +52,7 @@ public class Sets {
     return s;
   }
 
-  /**
-   * Returns the union of sets s1 and s2.
-   */
+  
   public static <E> Set<E> union(Set<E> s1, Set<E> s2) {
     Set<E> s = Generics.newHashSet();
     s.addAll(s1);
@@ -70,9 +60,7 @@ public class Sets {
     return s;
   }
 
-  /**
-   * Returns the intersection of sets s1 and s2.
-   */
+  
   public static <E> Set<E> intersection(Set<E> s1, Set<E> s2) {
     Set<E> s = Generics.newHashSet();
     s.addAll(s1);
@@ -80,20 +68,14 @@ public class Sets {
     return s;
   }
 
-  /**
-   * Returns true if there is at least element that is in both s1 and s2. Faster
-   * than calling intersection(Set,Set) if you don't need the contents of the
-   * intersection.
-   */
+  
   public static <E> boolean intersects(Set<E> s1, Set<E> s2) {
     // *ahem* It would seem that Java already had this method. Hopefully this
     // stub will help people find it better than I did.
     return !Collections.disjoint(s1, s2);
   }
 
-  /**
-   * Returns the powerset (the set of all subsets) of set s.
-   */
+  
   public static <E> Set<Set<E>> powerSet(Set<E> s) {
     if (s.isEmpty()) {
       Set<Set<E>> h = Generics.newHashSet();
@@ -117,13 +99,5 @@ public class Sets {
     }
   }
 
-  public static void main(String[] args) {
-    Set<String> h = Generics.newHashSet();
-    h.add("a");
-    h.add("b");
-    h.add("c");
-    Set<Set<String>> pow = powerSet(h);
-    System.out.println(pow);
-  }
 
 }

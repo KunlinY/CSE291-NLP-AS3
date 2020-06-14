@@ -5,7 +5,6 @@ package edu.berkeley.nlp.assignments.parsing.stats;
  * to their equivalence classes.
  *
  * @author Roger Levy
- * @see EquivalenceClassEval
  * @author Sarah Spikes (sdspikes@cs.stanford.edu) (Re-templatization)
  *
  * @param <IN> The type being classified

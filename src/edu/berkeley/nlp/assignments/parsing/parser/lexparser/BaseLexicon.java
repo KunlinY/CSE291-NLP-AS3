@@ -1,12 +1,8 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
 import edu.berkeley.nlp.assignments.parsing.ling.TaggedWord;
-import edu.berkeley.nlp.assignments.parsing.io.NumberRangesFileFilter;
-import edu.berkeley.nlp.assignments.parsing.io.EncodingPrintWriter;
 import edu.berkeley.nlp.assignments.parsing.trees.Tree;
 import edu.berkeley.nlp.assignments.parsing.trees.Treebank;
-import edu.berkeley.nlp.assignments.parsing.trees.DiskTreebank;
 import edu.berkeley.nlp.assignments.parsing.trees.TreebankLanguagePack;
 import edu.berkeley.nlp.assignments.parsing.stats.ClassicCounter;
 import edu.berkeley.nlp.assignments.parsing.stats.Counter;
@@ -37,7 +33,6 @@ import java.util.regex.Pattern;
 public class BaseLexicon implements Lexicon  {
 
   /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(BaseLexicon.class);
 
   protected UnknownWordModel uwModel;
   protected final String uwModelTrainerClass;
@@ -245,12 +240,6 @@ public class BaseLexicon implements Lexicon  {
         wordTaggings.add(new IntTaggedWord(word, iTW.tag));
       }
     }
-    if (DEBUG_LEXICON) {
-      EncodingPrintWriter.err.println("Lexicon: " + wordIndex.get(word) + " (" +
-              (isKnown(word) ? "known": "unknown") + ", loc=" + loc + ", n=" +
-              (isKnown(word) ? word: wordIndex.indexOf(UNKNOWN_WORD)) + ") " +
-              (flexiTag ? "flexi": "lexicon") + " taggings: " + wordTaggings, "UTF-8");
-    }
     return wordTaggings.iterator();
  }
 
@@ -260,9 +249,6 @@ public class BaseLexicon implements Lexicon  {
   }
 
   protected void initRulesWithWord() {
-    if (testOptions.verbose || DEBUG_LEXICON) {
-      log.info("Initializing lexicon scores ... ");
-    }
     // int numWords = words.size()+sigs.size()+1;
     int unkWord = wordIndex.addToIndex(UNKNOWN_WORD);
     int numWords = wordIndex.size();
@@ -278,16 +264,7 @@ public class BaseLexicon implements Lexicon  {
         tags.add(iTW);
       }
     }
-
-    // tags for unknown words
-    if (DEBUG_LEXICON) {
-      log.info("Lexicon initializing tags for UNKNOWN WORD (" +
-                         Lexicon.UNKNOWN_WORD + ", " + unkWord + ')');
-    }
-    if (DEBUG_LEXICON) log.info("unSeenCounter is: " + uwModel.unSeenCounter());
-    if (DEBUG_LEXICON) log.info("Train.openClassTypesThreshold is " + trainOptions.openClassTypesThreshold);
     for (IntTaggedWord iT : tags) {
-      if (DEBUG_LEXICON) log.info("Entry for " + iT + " is " + uwModel.unSeenCounter().getCount(iT));
       double types = uwModel.unSeenCounter().getCount(iT);
       if (types > trainOptions.openClassTypesThreshold) {
         // Number of types before it's treated as open class
@@ -307,7 +284,6 @@ public class BaseLexicon implements Lexicon  {
         }
       }
       sb.append(" ]");
-      log.info(sb.toString());
     }
 
     for (IntTaggedWord iTW : seenCounter.keySet()) {
@@ -568,24 +544,9 @@ public class BaseLexicon implements Lexicon  {
 
     double pb_W_T; // always set below
 
-    if (DEBUG_LEXICON) {
-      // dump info about last word
-      if (iTW.word != debugLastWord) {
-        if (debugLastWord >= 0 && debugPrefix != null) {
-          // the 2nd conjunct in test above handles older serialized files
-          EncodingPrintWriter.err.println(debugPrefix + debugProbs + debugNoProbs, "UTF-8");
-        }
-      }
-    }
-
     boolean seen = (c_W > 0.0);
 
     if (seen) {
-
-      // known word model for P(T|W)
-      if (DEBUG_LEXICON_SCORE) {
-        log.info("Lexicon.score " + wordIndex.get(iTW.word) + "/" + tagIndex.get(iTW.tag) + " as known word.");
-      }
 
       // c_TW = Math.sqrt(c_TW); [cdm: funny math scaling? dunno who played with this]
       // c_TW += 0.5;
@@ -593,16 +554,11 @@ public class BaseLexicon implements Lexicon  {
       double p_T_U;
       if (useSignatureForKnownSmoothing) { // only works for English currently
         p_T_U = getUnknownWordModel().scoreProbTagGivenWordSignature(iTW, loc, smooth[0], word);
-        if (DEBUG_LEXICON_SCORE) log.info("With useSignatureForKnownSmoothing, P(T|U) is " + p_T_U + " rather than " + (c_Tunseen / totalUnseen));
       } else {
         p_T_U = c_Tunseen / totalUnseen;
       }
       double pb_T_W; // always set below
 
-      if (DEBUG_LEXICON_SCORE) {
-        log.info("c_W is " + c_W  + " mle = " + (c_TW/c_W)+ " smoothInUnknownsThresh is " +
-                smoothInUnknownsThreshold + " base p_T_U is " + c_Tunseen + "/" + totalUnseen + " = " + p_T_U);
-      }
       if (c_W > smoothInUnknownsThreshold && c_TW > 0.0 && c_W > 0.0) {
         // we've seen the word enough times to have confidence in its tagging
         pb_T_W = c_TW / c_W;
@@ -627,10 +583,6 @@ public class BaseLexicon implements Lexicon  {
               p_T_U += p_T_W2 * m_TT[iTW.tag][t] / m_T[t] * 0.9;
             }
           }
-        }
-        if (DEBUG_LEXICON_SCORE) {
-          log.info("c_TW = " + c_TW + " c_W = " + c_W +
-                             " p_T_U = " + p_T_U);
         }
         // double pb_T_W = (c_TW+smooth[1]*x_TW)/(c_W+smooth[1]*x_W);
         pb_T_W = (c_TW + smooth[1] * p_T_U) / (c_W + smooth[1]);
@@ -705,10 +657,6 @@ public class BaseLexicon implements Lexicon  {
         // for (smooth[1]=0.1; smooth[1]<=12.8; smooth[1] *= 2.0) {//3
         double score = 0.0;
         // score = scoreAll(trees);
-        if (testOptions.verbose) {
-          log.info("Tuning lexicon: s0 " + smooth[0] +
-                             " s1 " + smooth[1] + " is " + score);
-        }
         if (score > bestScore) {
           System.arraycopy(smooth, 0, bestSmooth, 0, smooth.length);
           bestScore = score;
@@ -724,10 +672,6 @@ public class BaseLexicon implements Lexicon  {
     }
     if (testOptions.unseenSmooth > 0.0) {
       smooth[0] = testOptions.unseenSmooth;
-    }
-    if (testOptions.verbose) {
-      log.info("Tuning selected smoothUnseen " + smooth[0] + " smoothSeen " + smooth[1]
-                         + " at " + bestScore);
     }
   }
 
@@ -750,33 +694,6 @@ public class BaseLexicon implements Lexicon  {
    */
   @Override
   public void readData(BufferedReader in) throws IOException {
-    final String SEEN = "SEEN";
-    String line;
-    int lineNum = 1;
-    // all lines have one tagging with raw count per line
-    line = in.readLine();
-    Pattern p = Pattern.compile("^smooth\\[([0-9])\\] = (.*)$");
-    while (line != null && line.length() > 0) {
-      try {
-        Matcher m = p.matcher(line);
-        if (m.matches()) {
-          int i = Integer.parseInt(m.group(1));
-          smooth[i] = Double.parseDouble(m.group(2));
-        } else {
-          // split on spaces, quote with doublequote, and escape with backslash
-          String[] fields = StringUtils.splitOnCharWithQuoting(line, ' ', '\"', '\\');
-          // System.out.println("fields:\n" + fields[0] + "\n" + fields[1] +
-          // "\n" + fields[2] + "\n" + fields[3] + "\n" + fields[4]);
-          boolean seen = fields[3].equals(SEEN);
-          addTagging(seen, new IntTaggedWord(fields[2], fields[0], wordIndex, tagIndex), Double.parseDouble(fields[4]));
-        }
-      } catch (RuntimeException e) {
-        throw new IOException("Error on line " + lineNum + ": " + line, e);
-      }
-      lineNum++;
-      line = in.readLine();
-    }
-    initRulesWithWord();
   }
 
   /**
@@ -814,18 +731,6 @@ public class BaseLexicon implements Lexicon  {
 
   private static final int STATS_BINS = 15;
 
-
-  protected static void examineIntersection(Set<String> s1, Set<String> s2) {
-    Set<String> knownTypes = Generics.newHashSet(s1);
-    knownTypes.retainAll(s2);
-    if (knownTypes.size() != 0) {
-      System.err.printf("|intersect|: %d%n", knownTypes.size());
-      for (String word : knownTypes) {
-        log.info(word + " ");
-      }
-      log.info();
-    }
-  }
 
   /** Print some statistics about this lexicon. */
   public void printLexStats() {
@@ -946,68 +851,6 @@ public class BaseLexicon implements Lexicon  {
       String baseTag = tlp.basicCategory(tag);
       int j = tagIndex.addToIndex(baseTag);
       tagsToBaseTags[i] = j;
-    }
-  }
-
-  /** Provides some testing and opportunities for exploration of the
-   *  probabilities of a BaseLexicon.  What's here currently probably
-   *  only works for the English Penn Treeebank, as it uses default
-   *  constructors.  Of the words given to test on,
-   *  the first is treated as sentence initial, and the rest as not
-   *  sentence initial.
-   *
-   *  @param args The command line arguments:
-   *     java BaseLexicon treebankPath fileRange unknownWordModel words*
-   */
-  public static void main(String[] args) {
-    if (args.length < 3) {
-      log.info("java BaseLexicon treebankPath fileRange unknownWordModel words*");
-      return;
-    }
-    System.out.print("Training BaseLexicon from " + args[0] + ' ' + args[1] + " ... ");
-    Treebank tb = new DiskTreebank();
-    tb.loadPath(args[0], new NumberRangesFileFilter(args[1], true));
-    // TODO: change this interface so the lexicon creates its own indices?
-    Index<String> wordIndex = new HashIndex<>();
-    Index<String> tagIndex = new HashIndex<>();
-    Options op = new Options();
-    op.lexOptions.useUnknownWordSignatures = Integer.parseInt(args[2]);
-    BaseLexicon lex = new BaseLexicon(op, wordIndex, tagIndex);
-    lex.initializeTraining(tb.size());
-    lex.train(tb);
-    lex.finishTraining();
-    System.out.println("done.");
-    System.out.println();
-    NumberFormat nf = NumberFormat.getNumberInstance();
-    nf.setMaximumFractionDigits(4);
-    List<String> impos = new ArrayList<>();
-    for (int i = 3; i < args.length; i++) {
-      if (lex.isKnown(args[i])) {
-        System.out.println(args[i] + " is a known word.  Log probabilities [log P(w|t)] for its taggings are:");
-        for (Iterator<IntTaggedWord> it = lex.ruleIteratorByWord(wordIndex.addToIndex(args[i]), i - 3, null); it.hasNext(); ) {
-          IntTaggedWord iTW = it.next();
-          System.out.println(StringUtils.pad(iTW, 24) + nf.format(lex.score(iTW, i - 3, wordIndex.get(iTW.word), null)));
-        }
-      } else {
-        String sig = lex.getUnknownWordModel().getSignature(args[i], i-3);
-        System.out.println(args[i] + " is an unknown word.  Signature with uwm " + lex.getUnknownWordModel().getUnknownLevel() + ((i == 3) ? " init": "non-init") + " is: " + sig);
-        impos.clear();
-        List<String> lis = new ArrayList<>(tagIndex.objectsList());
-        Collections.sort(lis);
-        for (String tStr : lis) {
-          IntTaggedWord iTW = new IntTaggedWord(args[i], tStr, wordIndex, tagIndex);
-          double score = lex.score(iTW, 1, args[i], null);
-          if (score == Float.NEGATIVE_INFINITY) {
-            impos.add(tStr);
-          } else {
-            System.out.println(StringUtils.pad(iTW, 24) + nf.format(score));
-          }
-        }
-        if (impos.size() > 0) {
-          System.out.println(args[i] + " impossible tags: " + impos);
-        }
-      }
-      System.out.println();
     }
   }
 

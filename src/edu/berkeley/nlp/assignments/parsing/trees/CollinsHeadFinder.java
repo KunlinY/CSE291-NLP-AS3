@@ -1,6 +1,5 @@
 package edu.berkeley.nlp.assignments.parsing.trees;
 
-import edu.berkeley.nlp.assignments.parsing.ling.CategoryWordTag;
 import edu.berkeley.nlp.assignments.parsing.util.Generics;
 
 
@@ -92,28 +91,6 @@ public class CollinsHeadFinder extends AbstractCollinsHeadFinder {
       }
     }
     return headIdx;
-  }
-
-
-  /**
-   * Go through trees and determine their heads and print them.
-   * Just for debuggin'. <br>
-   * Usage: <code>
-   * java edu.berkeley.nlp.assignments.parsing.trees.CollinsHeadFinder treebankFilePath
-   * </code>
-   *
-   * @param args The treebankFilePath
-   */
-  public static void main(String[] args) {
-    Treebank treebank = new DiskTreebank();
-    CategoryWordTag.suppressTerminalDetails = true;
-    treebank.loadPath(args[0]);
-    final HeadFinder chf = new CollinsHeadFinder();
-    treebank.apply(pt -> {
-      pt.percolateHeads(chf);
-      pt.pennPrint();
-      System.out.println();
-    });
   }
 
   private static final long serialVersionUID = -8747319554557223437L;

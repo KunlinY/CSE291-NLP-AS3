@@ -1,13 +1,11 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
-
+import edu.berkeley.nlp.assignments.parsing.ling.CategoryWordTag;
 import edu.berkeley.nlp.assignments.parsing.trees.Tree;
 import edu.berkeley.nlp.assignments.parsing.trees.TreeTransformer;
-import edu.berkeley.nlp.assignments.parsing.ling.CategoryWordTag;
 
-import java.util.Set;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.Set;
 
 
 /**
@@ -19,8 +17,6 @@ import java.io.Serializable;
  */
 public class TrainOptions implements Serializable  {
 
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(TrainOptions.class);
 
   public String trainTreeFile = null; // same for me -- Teg
 
@@ -448,74 +444,10 @@ public class TrainOptions implements Serializable  {
   /** Horton-Strahler number/dimension (Maximilian Schlund) */
   public boolean markStrahler;
 
-  public void display() {
-    log.info(toString());
-  }
 
   @Override
   public String toString() {
-    StringBuilder result = new StringBuilder();
-    result.append("Train parameters:\n");
-    result.append(" smooth=" + smoothing + "\n");
-    result.append(" PA=" + PA + "\n");
-    result.append(" GPA=" + gPA + "\n");
-    result.append(" selSplit=" + selectiveSplit + "\n");
-    result.append(" (" + selectiveSplitCutOff + ((deleteSplitters != null) ? ("; deleting " + deleteSplitters): "") + ")" + "\n");
-    result.append(" mUnary=" + markUnary + "\n");
-    result.append(" mUnaryTags=" + markUnaryTags + "\n");
-    result.append(" sPPT=" + splitPrePreT + "\n");
-    result.append(" tagPA=" + tagPA + "\n");
-    result.append(" tagSelSplit=" + tagSelectiveSplit + " (" + tagSelectiveSplitCutOff + ")" + "\n");
-    result.append(" rightRec=" + rightRec + "\n");
-    result.append(" leftRec=" + leftRec + "\n");
-    result.append(" collinsPunc=" + collinsPunc + "\n");
-    result.append(" markov=" + markovFactor + "\n");
-    result.append(" mOrd=" + markovOrder + "\n");
-    result.append(" hSelSplit=" + hSelSplit + " (" + HSEL_CUT + ")" + "\n");
-    result.append(" compactGrammar=" + compactGrammar() + "\n");
-    result.append(" postPA=" + postPA + "\n");
-    result.append(" postGPA=" + postGPA + "\n");
-    result.append(" selPSplit=" + selectivePostSplit + " (" + selectivePostSplitCutOff + ")" + "\n");
-    result.append(" tagSelPSplit=" + tagSelectivePostSplit + " (" + tagSelectivePostSplitCutOff + ")" + "\n");
-    result.append(" postSplitWithBase=" + postSplitWithBaseCategory + "\n");
-    result.append(" fractionBeforeUnseenCounting=" + fractionBeforeUnseenCounting + "\n");
-    result.append(" openClassTypesThreshold=" + openClassTypesThreshold + "\n");
-    result.append(" preTransformer=" + preTransformer + "\n");
-    result.append(" taggedFiles=" + taggedFiles + "\n");
-    result.append(" predictSplits=" + predictSplits + "\n");
-    result.append(" splitCount=" + splitCount + "\n");
-    result.append(" splitRecombineRate=" + splitRecombineRate + "\n");
-    result.append(" simpleBinarizedLabels=" + simpleBinarizedLabels + "\n");
-    result.append(" noRebinarization=" + noRebinarization + "\n");
-    result.append(" trainingThreads=" + trainingThreads + "\n");
-    result.append(" dvKBest=" + dvKBest + "\n");
-    result.append(" trainingIterations=" + trainingIterations + "\n");
-    result.append(" batchSize=" + batchSize + "\n");
-    result.append(" regCost=" + regCost + "\n");
-    result.append(" qnIterationsPerBatch=" + qnIterationsPerBatch + "\n");
-    result.append(" qnEstimates=" + qnEstimates + "\n");
-    result.append(" qnTolerance=" + qnTolerance + "\n");
-    result.append(" debugOutputFrequency=" + debugOutputFrequency + "\n");
-    result.append(" randomSeed=" + randomSeed + "\n");
-    result.append(" learningRate=" + learningRate + "\n");
-    result.append(" deltaMargin=" + deltaMargin + "\n");
-    result.append(" unknownNumberVector=" + unknownNumberVector + "\n");
-    result.append(" unknownDashedWordVectors=" + unknownDashedWordVectors + "\n");
-    result.append(" unknownCapsVector=" + unknownCapsVector + "\n");
-    result.append(" unknownChineseYearVector=" + unknownChineseYearVector + "\n");
-    result.append(" unknownChineseNumberVector=" + unknownChineseNumberVector + "\n");
-    result.append(" unknownChinesePercentVector=" + unknownChinesePercentVector + "\n");
-    result.append(" dvSimplifiedModel=" + dvSimplifiedModel + "\n");
-    result.append(" scalingForInit=" + scalingForInit + "\n");
-    result.append(" maxTrainTimeSeconds=" + maxTrainTimeSeconds + "\n");
-    result.append(" unkWord=" + unkWord + "\n");
-    result.append(" lowercaseWordVectors=" + lowercaseWordVectors + "\n");
-    result.append(" transformMatrixType=" + transformMatrixType + "\n");
-    result.append(" useContextWords=" + useContextWords + "\n");
-    result.append(" trainWordVectors=" + trainWordVectors + "\n");
-    result.append(" stalledIterationLimit=" + stalledIterationLimit + "\n");
-    result.append(" markStrahler=" + markStrahler + "\n");
-    return result.toString();
+    return "";
   }
 
   public static void printTrainTree(PrintWriter pw, String message, Tree t) {

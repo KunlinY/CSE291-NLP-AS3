@@ -3,7 +3,6 @@ package edu.berkeley.nlp.assignments.parsing.parser.common;
 import java.util.List;
 
 import edu.berkeley.nlp.assignments.parsing.ling.CoreAnnotation;
-import edu.berkeley.nlp.assignments.parsing.util.ErasureUtils;
 
 /**
  * Parse time options for the Stanford lexicalized parser.  For
@@ -29,17 +28,5 @@ public class ParserAnnotations {
       return String.class;
     }
   }
-
-  /**
-   * The CoreMap key for getting a list of constraints to apply when parsing.
-   */
-  public static class ConstraintAnnotation 
-    implements CoreAnnotation<List<ParserConstraint>> 
-  {
-    public Class<List<ParserConstraint>> getType() {
-      return ErasureUtils.<Class<List<ParserConstraint>>> uncheckedCast(List.class);
-    }
-  }
-
 
 }

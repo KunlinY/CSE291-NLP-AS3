@@ -1,9 +1,8 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 
-import java.io.Serializable;
-
 import edu.berkeley.nlp.assignments.parsing.util.Index;
-import edu.berkeley.nlp.assignments.parsing.util.StringUtils;
+
+import java.io.Serializable;
 
 /**
  * Unary grammar rules (with ints for parent and child).
@@ -44,8 +43,7 @@ public class UnaryRule implements Rule, Comparable<UnaryRule>, Serializable {
    *  @param index The Index used to convert String to int
    */
   public UnaryRule(String s, Index<String> index) {
-    String[] fields = StringUtils.splitOnCharWithQuoting(s, ' ', '\"', '\\');
-    //    System.out.println("fields:\n" + fields[0] + "\n" + fields[2] + "\n" + fields[3]);
+    String[] fields = null;
     this.parent = index.indexOf(fields[0]);
     this.child = index.indexOf(fields[2]);
     this.score = Float.parseFloat(fields[3]);
@@ -108,15 +106,12 @@ public class UnaryRule implements Rule, Comparable<UnaryRule>, Serializable {
   }
 
   public String toString(Index<String> index) {
-    return '\"' + StringUtils.escapeString(index.get(parent), charsToEscape, '\\') + "\" -> \"" + StringUtils.escapeString(index.get(child), charsToEscape, '\\') + "\" " + score;
+    return "";
   }
 
   private transient String cached; // = null;
 
   public String toStringNoScore(Index<String> index) {
-    if (cached == null) {
-      cached = '\"' + StringUtils.escapeString(index.get(parent), charsToEscape, '\\') + "\" -> \"" + StringUtils.escapeString(index.get(child), charsToEscape, '\\');
-    }
     return cached;
   }
 

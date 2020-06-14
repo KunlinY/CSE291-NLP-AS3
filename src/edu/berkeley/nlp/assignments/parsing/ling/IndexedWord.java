@@ -1,11 +1,9 @@
 package edu.berkeley.nlp.assignments.parsing.ling;
 
+import edu.berkeley.nlp.assignments.parsing.util.TypesafeMap;
+
 import java.util.Objects;
 import java.util.Set;
-
-import edu.berkeley.nlp.assignments.parsing.util.StringUtils;
-import edu.berkeley.nlp.assignments.parsing.util.TypesafeMap;
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
 /**
  * This class provides a {@link CoreLabel} that uses its
@@ -32,9 +30,6 @@ import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
  * @author Sonal Gupta
  */
 public class IndexedWord implements AbstractCoreLabel, Comparable<IndexedWord>  {
-
-  /** A logger for this class */
-  private static final  Redwood.RedwoodChannels log = Redwood.channels(IndexedWord.class);
 
   private static final long serialVersionUID = 3739633991145239829L;
 
@@ -355,7 +350,7 @@ public class IndexedWord implements AbstractCoreLabel, Comparable<IndexedWord>  
   }
 
   public String toPrimes() {
-    return StringUtils.repeat('\'', copyCount);
+    return "";
   }
 
   public String toCopyIndex() {
@@ -444,28 +439,7 @@ public class IndexedWord implements AbstractCoreLabel, Comparable<IndexedWord>  
    */
   @Override
   public int hashCode() {
-    if (cachedHashCode != 0) {
-      return cachedHashCode;
-    }
-    boolean sensible = false;
-    int result = 0;
-    if (get(CoreAnnotations.DocIDAnnotation.class) != null) {
-      result = get(CoreAnnotations.DocIDAnnotation.class).hashCode();
-      sensible = true;
-    }
-    if (containsKey(CoreAnnotations.SentenceIndexAnnotation.class)) {
-      result = 29 * result + get(CoreAnnotations.SentenceIndexAnnotation.class).hashCode();
-      sensible = true;
-    }
-    if (containsKey(CoreAnnotations.IndexAnnotation.class)) {
-      result = 29 * result + get(CoreAnnotations.IndexAnnotation.class).hashCode();
-      sensible = true;
-    }
-    if ( ! sensible) {
-      log.info("WARNING!!!  You have hashed an IndexedWord with no docID, sentIndex or wordIndex. You will almost certainly lose");
-    }
-    cachedHashCode = result;
-    return result;
+    return 0;
   }
 
   /**

@@ -1,15 +1,12 @@
 package edu.berkeley.nlp.assignments.parsing.math;
 
-import java.io.IOException;
+import edu.berkeley.nlp.assignments.parsing.util.RuntimeInterruptedException;
+
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
-
-import edu.berkeley.nlp.assignments.parsing.io.IOUtils;
-import edu.berkeley.nlp.assignments.parsing.util.RuntimeInterruptedException;
-import edu.berkeley.nlp.assignments.parsing.util.StringUtils;
 
 /**
  * Methods for operating on numerical arrays as vectors and matrices.
@@ -1184,47 +1181,6 @@ public class ArrayMath {
     return result;
   }
 
-  // UTILITIES
-
-  public static double[][] load2DMatrixFromFile(String filename) throws IOException {
-    String s = IOUtils.slurpFile(filename);
-    String[] rows = s.split("[\r\n]+");
-    double[][] result = new double[rows.length][];
-    for (int i=0; i<result.length; i++) {
-      String[] columns = rows[i].split("\\s+");
-      result[i] = new double[columns.length];
-      for (int j=0; j<result[i].length; j++) {
-        result[i][j] = Double.parseDouble(columns[j]);
-      }
-    }
-    return result;
-  }
-
-  public static Integer[] box(int[] assignment) {
-    Integer[] result = new Integer[assignment.length];
-    for (int i=0; i<assignment.length; i++) {
-      result[i] = Integer.valueOf(assignment[i]);
-    }
-    return result;
-  }
-
-  public static int[] unboxToInt(Collection<Integer> list) {
-    int[] result = new int[list.size()];
-    int i = 0;
-    for (int v : list) {
-      result[i++] = v;
-    }
-    return result;
-  }
-
-  public static Double[] box(double[] assignment) {
-    Double[] result = new Double[assignment.length];
-    for (int i=0; i<assignment.length; i++) {
-      result[i] = Double.valueOf(assignment[i]);
-    }
-    return result;
-  }
-
   public static double[] unbox(Collection<Double> list) {
     double[] result = new double[list.size()];
     int i = 0;
@@ -1239,17 +1195,6 @@ public class ArrayMath {
       if (a[i]==n) return i;
     }
     return -1;
-  }
-
-  public static int[][] castToInt(double[][] doubleCounts) {
-    int[][] result = new int[doubleCounts.length][];
-    for (int i=0; i<doubleCounts.length; i++) {
-      result[i] = new int[doubleCounts[i].length];
-      for (int j=0; j<doubleCounts[i].length; j++) {
-        result[i][j] = (int) doubleCounts[i][j];
-      }
-    }
-    return result;
   }
 
   // PROBABILITY FUNCTIONS
@@ -1903,61 +1848,7 @@ public class ArrayMath {
   }
 
   public static String toString(int[][] counts, Object[] rowLabels, Object[] colLabels, int labelSize, int cellSize, NumberFormat nf, boolean printTotals) {
-    // first compute row totals and column totals
-    if (counts.length==0 || counts[0].length==0) return "";
-    int[] rowTotals = new int[counts.length];
-    int[] colTotals = new int[counts[0].length]; // assume it's square
-    int total = 0;
-    for (int i = 0; i < counts.length; i++) {
-      for (int j = 0; j < counts[i].length; j++) {
-        rowTotals[i] += counts[i][j];
-        colTotals[j] += counts[i][j];
-        total += counts[i][j];
-      }
-    }
-    StringBuilder result = new StringBuilder();
-    // column labels
-    if (colLabels != null) {
-      result.append(StringUtils.padLeft("", labelSize)); // spacing for the row labels!
-      for (int j = 0; j < counts[0].length; j++) {
-        String s = (colLabels[j]==null ? "null" : colLabels[j].toString());
-        if (s.length() > cellSize - 1) {
-          s = s.substring(0, cellSize - 1);
-        }
-        s = StringUtils.padLeft(s, cellSize);
-        result.append(s);
-      }
-      if (printTotals) {
-        result.append(StringUtils.padLeftOrTrim("Total", cellSize));
-      }
-      result.append('\n');
-    }
-    for (int i = 0; i < counts.length; i++) {
-      // row label
-      if (rowLabels != null) {
-        String s = (rowLabels[i]==null ? "null" : rowLabels[i].toString());
-        s = StringUtils.padOrTrim(s, labelSize); // left align this guy only
-        result.append(s);
-      }
-      // value
-      for (int j = 0; j < counts[i].length; j++) {
-        result.append(StringUtils.padLeft(nf.format(counts[i][j]), cellSize));
-      }
-      // the row total
-      if (printTotals) {
-        result.append(StringUtils.padLeft(nf.format(rowTotals[i]), cellSize));
-      }
-      result.append('\n');
-    }
-    // the col totals
-    if (printTotals) {
-      result.append(StringUtils.pad("Total", labelSize));
-      for (int colTotal : colTotals) {
-        result.append(StringUtils.padLeft(nf.format(colTotal), cellSize));
-      }
-      result.append(StringUtils.padLeft(nf.format(total), cellSize));
-    }
-    return result.toString();
+    return "";
   }
 
 
@@ -1966,61 +1857,7 @@ public class ArrayMath {
   }
 
   public static String toString(double[][] counts, int cellSize, Object[] rowLabels, Object[] colLabels, NumberFormat nf, boolean printTotals) {
-    if (counts==null) return null;
-    // first compute row totals and column totals
-    double[] rowTotals = new double[counts.length];
-    double[] colTotals = new double[counts[0].length]; // assume it's square
-    double total = 0.0;
-    for (int i = 0; i < counts.length; i++) {
-      for (int j = 0; j < counts[i].length; j++) {
-        rowTotals[i] += counts[i][j];
-        colTotals[j] += counts[i][j];
-        total += counts[i][j];
-      }
-    }
-    StringBuilder result = new StringBuilder();
-    // column labels
-    if (colLabels != null) {
-      result.append(StringUtils.padLeft("", cellSize));
-      for (int j = 0; j < counts[0].length; j++) {
-        String s = colLabels[j].toString();
-        if (s.length() > cellSize - 1) {
-          s = s.substring(0, cellSize - 1);
-        }
-        s = StringUtils.padLeft(s, cellSize);
-        result.append(s);
-      }
-      if (printTotals) {
-        result.append(StringUtils.padLeftOrTrim("Total", cellSize));
-      }
-      result.append('\n');
-    }
-    for (int i = 0; i < counts.length; i++) {
-      // row label
-      if (rowLabels != null) {
-        String s = rowLabels[i].toString();
-        s = StringUtils.padOrTrim(s, cellSize); // left align this guy only
-        result.append(s);
-      }
-      // value
-      for (int j = 0; j < counts[i].length; j++) {
-        result.append(StringUtils.padLeft(nf.format(counts[i][j]), cellSize));
-      }
-      // the row total
-      if (printTotals) {
-        result.append(StringUtils.padLeft(nf.format(rowTotals[i]), cellSize));
-      }
-      result.append('\n');
-    }
-    // the col totals
-    if (printTotals) {
-      result.append(StringUtils.pad("Total", cellSize));
-      for (double colTotal : colTotals) {
-        result.append(StringUtils.padLeft(nf.format(colTotal), cellSize));
-      }
-      result.append(StringUtils.padLeft(nf.format(total), cellSize));
-    }
-    return result.toString();
+    return null;
   }
 
   public static String toString(float[][] counts) {
@@ -2028,79 +1865,7 @@ public class ArrayMath {
   }
 
   public static String toString(float[][] counts, int cellSize, Object[] rowLabels, Object[] colLabels, NumberFormat nf, boolean printTotals) {
-    // first compute row totals and column totals
-    double[] rowTotals = new double[counts.length];
-    double[] colTotals = new double[counts[0].length]; // assume it's square
-    double total = 0.0;
-    for (int i = 0; i < counts.length; i++) {
-      for (int j = 0; j < counts[i].length; j++) {
-        rowTotals[i] += counts[i][j];
-        colTotals[j] += counts[i][j];
-        total += counts[i][j];
-      }
-    }
-    StringBuilder result = new StringBuilder();
-    // column labels
-    if (colLabels != null) {
-      result.append(StringUtils.padLeft("", cellSize));
-      for (int j = 0; j < counts[0].length; j++) {
-        String s = colLabels[j].toString();
-        s = StringUtils.padLeftOrTrim(s, cellSize);
-        result.append(s);
-      }
-      if (printTotals) {
-        result.append(StringUtils.padLeftOrTrim("Total", cellSize));
-      }
-      result.append('\n');
-    }
-    for (int i = 0; i < counts.length; i++) {
-      // row label
-      if (rowLabels != null) {
-        String s = rowLabels[i].toString();
-        s = StringUtils.pad(s, cellSize); // left align this guy only
-        result.append(s);
-      }
-      // value
-      for (int j = 0; j < counts[i].length; j++) {
-        result.append(StringUtils.padLeft(nf.format(counts[i][j]), cellSize));
-      }
-      // the row total
-      if (printTotals) {
-        result.append(StringUtils.padLeft(nf.format(rowTotals[i]), cellSize));
-      }
-      result.append('\n');
-    }
-    // the col totals
-    if (printTotals) {
-      result.append(StringUtils.pad("Total", cellSize));
-      for (double colTotal : colTotals) {
-        result.append(StringUtils.padLeft(nf.format(colTotal), cellSize));
-      }
-      result.append(StringUtils.padLeft(nf.format(total), cellSize));
-    }
-    return result.toString();
-  }
-
-  /**
-   * For testing only.
-   * @param args Ignored
-   */
-  public static void main(String[] args) {
-    Random random = new Random();
-    int length = 100;
-    double[] A = new double[length];
-    double[] B = new double[length];
-    double aAvg = 70.0;
-    double bAvg = 70.5;
-    for (int i = 0; i < length; i++) {
-      A[i] = aAvg + random.nextGaussian();
-      B[i] = bAvg + random.nextGaussian();
-    }
-    System.out.println("A has length " + A.length + " and mean " + mean(A));
-    System.out.println("B has length " + B.length + " and mean " + mean(B));
-    for (int t = 0; t < 10; t++) {
-      System.out.println("p-value: " + sigLevelByApproxRand(A, B));
-    }
+    return null;
   }
 
   public static int[][] deepCopy(int[][] counts) {

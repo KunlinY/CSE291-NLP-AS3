@@ -1,19 +1,8 @@
 package edu.berkeley.nlp.assignments.parsing.trees;
 
 import edu.berkeley.nlp.assignments.parsing.ling.Label;
-import edu.berkeley.nlp.assignments.parsing.util.XMLUtils;
 
-/**
- * An individual dependency between a head and a dependent.
- * The head and dependent are represented as a Label.
- * For example, these can be a
- * Word or a WordTag.  If one wishes the dependencies to preserve positions
- * in a sentence, then each can be a NamedConstituent.
- *
- * @author Christopher Manning
- * @author Spence Green
- * 
- */
+
 public class NamedDependency extends UnnamedDependency {
 
   private static final long serialVersionUID = -1635646451505721133L;
@@ -56,21 +45,10 @@ public class NamedDependency extends UnnamedDependency {
     return String.format("%s --%s--> %s", regentText, name.toString(), dependentText);
   }
   
-  /**
-   * Provide different printing options via a String keyword.
-   * The recognized options are currently "xml", and "predicate".
-   * Otherwise the default toString() is used.
-   */
+  
   @Override
   public String toString(String format) {
-    switch (format) {
-      case "xml":
-        return "  <dep>\n    <governor>" + XMLUtils.escapeXML(governor().value()) + "</governor>\n    <dependent>" + XMLUtils.escapeXML(dependent().value()) + "</dependent>\n  </dep>";
-      case "predicate":
-        return "dep(" + governor() + "," + dependent() + "," + name() + ")";
-      default:
-        return toString();
-    }
+    return "";
   }
 
   @Override

@@ -2,7 +2,6 @@ package edu.berkeley.nlp.assignments.parsing.trees;
 
 import edu.berkeley.nlp.assignments.parsing.ling.HasIndex;
 import edu.berkeley.nlp.assignments.parsing.ling.Label;
-import edu.berkeley.nlp.assignments.parsing.util.XMLUtils;
 
 /**
  * An individual dependency between a head and a dependent. The dependency
@@ -87,16 +86,7 @@ public class UnnamedConcreteDependency extends UnnamedDependency {
    */
   @Override
   public String toString(String format) {
-    switch (format) {
-      case "xml":
-        String govIdxStr = " idx=\"" + headIndex + "\"";
-        String depIdxStr = " idx=\"" + depIndex + "\"";
-        return "  <dep>\n    <governor" + govIdxStr + ">" + XMLUtils.escapeXML(governor().value()) + "</governor>\n    <dependent" + depIdxStr + ">" + XMLUtils.escapeXML(dependent().value()) + "</dependent>\n  </dep>";
-      case "predicate":
-        return "dep(" + governor() + "," + dependent() + ")";
-      default:
-        return toString();
-    }
+    return "";
   }
 
   @Override

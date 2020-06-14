@@ -3,7 +3,6 @@ package edu.berkeley.nlp.assignments.parsing.pipeline;
 import edu.berkeley.nlp.assignments.parsing.ling.CoreAnnotations;
 import edu.berkeley.nlp.assignments.parsing.ling.CoreLabel;
 import edu.berkeley.nlp.assignments.parsing.stats.IntCounter;
-import edu.berkeley.nlp.assignments.parsing.util.ArrayMap;
 import edu.berkeley.nlp.assignments.parsing.util.CoreMap;
 import edu.berkeley.nlp.assignments.parsing.util.Generics;
 
@@ -16,15 +15,6 @@ import java.util.*;
 */
 public abstract class CoreMapAttributeAggregator
 {
-  public static Map<Class, CoreMapAttributeAggregator> getDefaultAggregators()
-  {
-    return DEFAULT_AGGREGATORS;
-  }
-
-  public static CoreMapAttributeAggregator getAggregator(String str)
-  {
-    return AGGREGATOR_LOOKUP.get(str);
-  }
 
   public abstract Object aggregate(Class key, List<? extends CoreMap> in);
 
@@ -156,8 +146,7 @@ public abstract class CoreMapAttributeAggregator
     }
     public Object aggregate(Class key, List<? extends CoreMap> in) {
       if (in == null) return null;
-      String text = ChunkAnnotationUtils.getTokenText(in, key);
-      return text;
+      return null;
     }
   }
   public static final CoreMapAttributeAggregator CONCAT = new ConcatAggregator(" ");
@@ -281,7 +270,7 @@ public abstract class CoreMapAttributeAggregator
   public static final Map<Class, CoreMapAttributeAggregator> DEFAULT_NUMERIC_TOKENS_AGGREGATORS;
 
   static {
-    Map<Class, CoreMapAttributeAggregator> defaultAggr = new ArrayMap<>();
+    Map<Class, CoreMapAttributeAggregator> defaultAggr = null;
     defaultAggr.put(CoreAnnotations.TextAnnotation.class, CoreMapAttributeAggregator.CONCAT_TEXT);
     defaultAggr.put(CoreAnnotations.CharacterOffsetBeginAnnotation.class, CoreMapAttributeAggregator.FIRST);
     defaultAggr.put(CoreAnnotations.CharacterOffsetEndAnnotation.class, CoreMapAttributeAggregator.LAST);
@@ -292,14 +281,14 @@ public abstract class CoreMapAttributeAggregator
     defaultAggr.put(CoreAnnotations.AfterAnnotation.class, CoreMapAttributeAggregator.LAST);
     DEFAULT_AGGREGATORS = Collections.unmodifiableMap(defaultAggr);
 
-    Map<Class, CoreMapAttributeAggregator> defaultNumericAggr = new ArrayMap<>(DEFAULT_AGGREGATORS);
+    Map<Class, CoreMapAttributeAggregator> defaultNumericAggr = null;
     defaultNumericAggr.put(CoreAnnotations.NumericCompositeTypeAnnotation.class, CoreMapAttributeAggregator.FIRST_NON_NIL);
     defaultNumericAggr.put(CoreAnnotations.NumericCompositeValueAnnotation.class, CoreMapAttributeAggregator.FIRST_NON_NIL);
     defaultNumericAggr.put(CoreAnnotations.NamedEntityTagAnnotation.class, CoreMapAttributeAggregator.FIRST_NON_NIL);
     defaultNumericAggr.put(CoreAnnotations.NormalizedNamedEntityTagAnnotation.class, CoreMapAttributeAggregator.FIRST_NON_NIL);
     DEFAULT_NUMERIC_AGGREGATORS = Collections.unmodifiableMap(defaultNumericAggr);
 
-    Map<Class, CoreMapAttributeAggregator> defaultNumericTokensAggr = new ArrayMap<>(DEFAULT_NUMERIC_AGGREGATORS);
+    Map<Class, CoreMapAttributeAggregator> defaultNumericTokensAggr = null;
     defaultNumericTokensAggr.put(CoreAnnotations.NumerizedTokensAnnotation.class, CoreMapAttributeAggregator.CONCAT_COREMAP);
     DEFAULT_NUMERIC_TOKENS_AGGREGATORS = Collections.unmodifiableMap(defaultNumericTokensAggr);
   }

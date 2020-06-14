@@ -1,14 +1,13 @@
 package edu.berkeley.nlp.assignments.parsing.trees;
 
-import edu.berkeley.nlp.assignments.parsing.io.IOUtils;
-import java.util.function.Function;
-import edu.berkeley.nlp.assignments.parsing.util.Generics;
-import edu.berkeley.nlp.assignments.parsing.util.MutableInteger;
-import edu.berkeley.nlp.assignments.parsing.util.StringUtils;
 import edu.berkeley.nlp.assignments.parsing.ling.*;
+import edu.berkeley.nlp.assignments.parsing.util.MutableInteger;
 
-import java.util.*;
-import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * Various static utilities for the <code>Tree</code> class.
@@ -387,92 +386,6 @@ public class Trees {
     return -1;
   }
 
-  /** Returns a String reporting what kinds of Tree and Label nodes this
-   *  Tree contains.
-   *
-   *  @param t The tree to examine.
-   *  @return A human-readable String reporting what kinds of Tree and Label nodes this
-   *      Tree contains.
-   */
-  public static String toStructureDebugString(Tree t) {
-    String tCl = StringUtils.getShortClassName(t);
-    String tfCl = StringUtils.getShortClassName(t.treeFactory());
-    String lCl = StringUtils.getShortClassName(t.label());
-    String lfCl = StringUtils.getShortClassName(t.label().labelFactory());
-    Set<String> otherClasses = Generics.newHashSet();
-    String leafLabels = null;
-    String tagLabels = null;
-    String phraseLabels = null;
-    String leaves = null;
-    String nodes = null;
-    for (Tree st : t) {
-      String stCl = StringUtils.getShortClassName(st);
-      String stfCl = StringUtils.getShortClassName(st.treeFactory());
-      String slCl = StringUtils.getShortClassName(st.label());
-      String slfCl = StringUtils.getShortClassName(st.label().labelFactory());
-      if ( ! tCl.equals(stCl)) {
-        otherClasses.add(stCl);
-      }
-      if ( ! tfCl.equals(stfCl)) {
-        otherClasses.add(stfCl);
-      }
-      if ( ! lCl.equals(slCl)) {
-        otherClasses.add(slCl);
-      }
-      if ( ! lfCl.equals(slfCl)) {
-        otherClasses.add(slfCl);
-      }
-      if (st.isPhrasal()) {
-        if (nodes == null) {
-          nodes = stCl;
-        } else if ( ! nodes.equals(stCl)) {
-          nodes = "mixed";
-        }
-        if (phraseLabels == null) {
-          phraseLabels = slCl;
-        } else if ( ! phraseLabels.equals(slCl)) {
-          phraseLabels = "mixed";
-        }
-      } else if (st.isPreTerminal()) {
-        if (nodes == null) {
-          nodes = stCl;
-        } else if ( ! nodes.equals(stCl)) {
-          nodes = "mixed";
-        }
-        if (tagLabels == null) {
-          tagLabels = StringUtils.getShortClassName(slCl);
-        } else if ( ! tagLabels.equals(slCl)) {
-          tagLabels = "mixed";
-        }
-      } else if (st.isLeaf()) {
-        if (leaves == null) {
-          leaves = stCl;
-        } else if ( ! leaves.equals(stCl)) {
-          leaves = "mixed";
-        }
-        if (leafLabels == null) {
-          leafLabels = slCl;
-        } else if ( ! leafLabels.equals(slCl)) {
-          leafLabels = "mixed";
-        }
-      } else {
-        throw new IllegalStateException("Bad tree state: " + t);
-      }
-    } // end for Tree st : this
-    StringBuilder sb = new StringBuilder();
-    sb.append("Tree with root of class ").append(tCl).append(" and factory ").append(tfCl);
-    sb.append(" and root label class ").append(lCl).append(" and factory ").append(lfCl);
-    if ( ! otherClasses.isEmpty()) {
-      sb.append(" and the following classes also found within the tree: ").append(otherClasses);
-      return " with " + nodes + " interior nodes and " + leaves +
-        " leaves, and " + phraseLabels + " phrase labels, " +
-        tagLabels + " tag labels, and " + leafLabels + " leaf labels.";
-    } else {
-      sb.append(" (and uniform use of these Tree and Label classes throughout the tree).");
-    }
-    return sb.toString();
-  }
-
 
   /** Turns a sentence into a flat phrasal tree.
    *  The structure is S -&gt; tag*.  And then each tag goes to a word.
@@ -588,39 +501,6 @@ public class Trees {
         sb.append("{}");
     }
     return sb.toString();
-  }
-
-
-  public static void main(String[] args) throws IOException {
-    int i = 0;
-    while (i < args.length) {
-      Tree tree = Tree.valueOf(args[i]);
-      if (tree == null) {
-        // maybe it was a filename
-        tree = Tree.valueOf(IOUtils.slurpFile(args[i]));
-      }
-      if (tree != null) {
-        System.out.println(escape(texTree(tree)));
-      }
-      i++;
-    }
-    if (i == 0) {
-      Tree tree = (new PennTreeReader(new BufferedReader(new
-              InputStreamReader(System.in)), new LabeledScoredTreeFactory(new
-              StringLabelFactory()))).readTree();
-      System.out.println(escape(texTree(tree)));
-    }
-  }
-
-  public static Tree normalizeTree(Tree tree, TreeNormalizer tn, TreeFactory tf) {
-    for (Tree node : tree) {
-      if (node.isLeaf()) {
-        node.label().setValue(tn.normalizeTerminal(node.label().value()));
-      } else {
-        node.label().setValue(tn.normalizeNonterminal(node.label().value()));
-      }
-    }
-    return tn.normalizeWholeTree(tree, tf);
   }
 
 
@@ -801,12 +681,7 @@ public class Trees {
    * Simple tree reading utility method.  Given a tree formatted as a PTB string, returns a Tree made by a specific TreeFactory.
    */
   public static Tree readTree(String ptbTreeString, TreeFactory treeFactory) {
-    try {
-      PennTreeReader ptr = new PennTreeReader(new StringReader(ptbTreeString), treeFactory);
-      return ptr.readTree();
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
-    }
+    return null;
   }
 
   /**

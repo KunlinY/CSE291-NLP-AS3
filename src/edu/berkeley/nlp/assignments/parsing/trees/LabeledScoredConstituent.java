@@ -47,21 +47,14 @@ public class LabeledScoredConstituent extends LabeledConstituent {
   }
 
 
-  /**
-   * Returns the score associated with the current node, or Nan
-   * if there is no score
-   *
-   * @return the score
-   */
+  
   @Override
   public double score() {
     return score;
   }
 
 
-  /**
-   * Sets the score associated with the current node, if there is one
-   */
+  
   @Override
   public void setScore(final double score) {
     this.score = score;
@@ -127,12 +120,7 @@ public class LabeledScoredConstituent extends LabeledConstituent {
     static final LabelFactory lf = new LabeledScoredConstituentLabelFactory();
   }
 
-  /**
-   * Return a factory for this kind of label.
-   * The factory returned is always the same one (a singleton)
-   *
-   * @return the label factory
-   */
+  
   @Override
   public LabelFactory labelFactory() {
     return LabelFactoryHolder.lf;
@@ -147,24 +135,14 @@ public class LabeledScoredConstituent extends LabeledConstituent {
   }
 
 
-  /**
-   * Return a factory for this kind of constituent.
-   * The factory returned is always the same one (a singleton).
-   *
-   * @return The constituent factory
-   */
+  
   @Override
   public ConstituentFactory constituentFactory() {
     return ConstituentFactoryHolder.cf;
   }
 
 
-  /**
-   * Return a factory for this kind of constituent.
-   * The factory returned is always the same one (a singleton).
-   *
-   * @return The constituent factory
-   */
+  
   public static ConstituentFactory factory() {
     return ConstituentFactoryHolder.cf;
   }

@@ -1,9 +1,8 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 
-import java.io.Serializable;
-
 import edu.berkeley.nlp.assignments.parsing.util.Index;
-import edu.berkeley.nlp.assignments.parsing.util.StringUtils;
+
+import java.io.Serializable;
 
 
 /** Maintains a dependency between head and dependent where they are each an IntTaggedWord.
@@ -43,11 +42,11 @@ public class IntDependency implements Serializable {
 
   @Override
   public String toString() {
-    return "\"" + StringUtils.escapeString(head.toString(), charsToEscape, '\\') + "\" -> \"" + StringUtils.escapeString(arg.toString(), charsToEscape, '\\') + "\" " + (leftHeaded ? LEFT : RIGHT) + " " + distance;
+    return "";
   }
 
   public String toString(Index<String> wordIndex, Index<String> tagIndex) {
-    return "\"" + StringUtils.escapeString(head.toString(wordIndex, tagIndex), charsToEscape, '\\') + "\" -> \"" + StringUtils.escapeString(arg.toString(wordIndex, tagIndex), charsToEscape, '\\') + "\" " + (leftHeaded ? LEFT : RIGHT) + " " + distance;
+    return "";
   }
 
   public IntDependency(IntTaggedWord head, IntTaggedWord arg, boolean leftHeaded, int distance) {

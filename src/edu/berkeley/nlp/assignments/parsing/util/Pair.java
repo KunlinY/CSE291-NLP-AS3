@@ -1,14 +1,8 @@
 package edu.berkeley.nlp.assignments.parsing.util;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.Serializable;
-import java.util.Comparator;
 import java.util.List;
-
-import edu.berkeley.nlp.assignments.parsing.util.logging.PrettyLoggable;
-import edu.berkeley.nlp.assignments.parsing.util.logging.PrettyLogger;
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood.RedwoodChannels;
 
 /**
  * Pair is a Class for holding mutable pairs of objects.
@@ -25,7 +19,7 @@ import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood.RedwoodChannels
  * @version 2002/08/25
  */
 
-public class Pair <T1,T2> implements Comparable<Pair<T1,T2>>, Serializable, PrettyLoggable {
+public class Pair <T1,T2> implements Comparable<Pair<T1,T2>>, Serializable {
 
   /**
    * Direct access is deprecated.  Use first().
@@ -91,25 +85,13 @@ public class Pair <T1,T2> implements Comparable<Pair<T1,T2>>, Serializable, Pret
   }
 
   public List<Object> asList() {
-    return CollectionUtils.makeList(first, second);
+    return null;
   }
 
-  /**
-   * Returns a Pair constructed from X and Y.  Convenience method; the
-   * compiler will disambiguate the classes used for you so that you
-   * don't have to write out potentially long class names.
-   */
   public static <X, Y> Pair<X, Y> makePair(X x, Y y) {
     return new Pair<>(x, y);
   }
 
-  /**
-   * Write a string representation of a Pair to a DataStream.
-   * The <code>toString()</code> method is called on each of the pair
-   * of objects and a <code>String</code> representation is written.
-   * This might not allow one to recover the pair of objects unless they
-   * are of type <code>String</code>.
-   */
   public void save(DataOutputStream out) {
     try {
       out.writeUTF(first.toString());
@@ -119,27 +101,6 @@ public class Pair <T1,T2> implements Comparable<Pair<T1,T2>>, Serializable, Pret
     }
   }
 
-  /**
-   * Compares this <code>Pair</code> to another object.
-   * If the object is a <code>Pair</code>, this function will work providing
-   * the elements of the <code>Pair</code> are themselves comparable.
-   * It will then return a value based on the pair of objects, where
-   * <code>p &gt; q iff p.first() &gt; q.first() ||
-   * (p.first().equals(q.first()) && p.second() &gt; q.second())</code>.
-   * If the other object is not a <code>Pair</code>, it throws a
-   * <code>ClassCastException</code>.
-   *
-   * @param another the <code>Object</code> to be compared.
-   * @return the value <code>0</code> if the argument is a
-   *         <code>Pair</code> equal to this <code>Pair</code>; a value less than
-   *         <code>0</code> if the argument is a <code>Pair</code>
-   *         greater than this <code>Pair</code>; and a value
-   *         greater than <code>0</code> if the argument is a
-   *         <code>Pair</code> less than this <code>Pair</code>.
-   * @throws ClassCastException if the argument is not a
-   *                            <code>Pair</code>.
-   * @see java.lang.Comparable
-   */
   @SuppressWarnings("unchecked")
   public int compareTo(Pair<T1,T2> another) {
     if (first() instanceof Comparable) {
@@ -159,158 +120,6 @@ public class Pair <T1,T2> implements Comparable<Pair<T1,T2>>, Serializable, Pret
 
     return 0;
   }
-
-  /**
-   * If first and second are Strings, then this returns an MutableInternedPair
-   * where the Strings have been interned, and if this Pair is serialized
-   * and then deserialized, first and second are interned upon
-   * deserialization.
-   *
-   * @param p A pair of Strings
-   * @return MutableInternedPair, with same first and second as this.
-   */
-  public static Pair<String, String> stringIntern(Pair<String, String> p) {
-    return new MutableInternedPair(p);
-  }
-
-  /**
-   * Returns an MutableInternedPair where the Strings have been interned.
-   * This is a factory method for creating an
-   * MutableInternedPair.  It requires the arguments to be Strings.
-   * If this Pair is serialized
-   * and then deserialized, first and second are interned upon
-   * deserialization.
-   * <p><i>Note:</i> I put this in thinking that its use might be
-   * faster than calling <code>x = new Pair(a, b).stringIntern()</code>
-   * but it's not really clear whether this is true.
-   *
-   * @param first  The first object
-   * @param second The second object
-   * @return An MutableInternedPair, with given first and second
-   */
-  public static Pair<String, String> internedStringPair(String first, String second) {
-    return new MutableInternedPair(first, second);
-  }
-
-
-  /**
-   * use serialVersionUID for cross version serialization compatibility
-   */
   private static final long serialVersionUID = 1360822168806852921L;
 
-
-  static class MutableInternedPair extends Pair<String, String> {
-
-    private MutableInternedPair(Pair<String, String> p) {
-      super(p.first, p.second);
-      internStrings();
-    }
-
-    private MutableInternedPair(String first, String second) {
-      super(first, second);
-      internStrings();
-    }
-
-    protected Object readResolve() {
-      internStrings();
-      return this;
-    }
-
-    private void internStrings() {
-      if (first != null) {
-        first = first.intern();
-      }
-      if (second != null) {
-        second = second.intern();
-      }
-    }
-
-    // use serialVersionUID for cross version serialization compatibility
-    private static final long serialVersionUID = 1360822168806852922L;
-
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void prettyLog(RedwoodChannels channels, String description) {
-    PrettyLogger.log(channels, description, this.asList());
-  }
-  
-  /**
-   * Compares a <code>Pair</code> to another <code>Pair</code> according to the first object of the pair only
-   * This function will work providing
-   * the first element of the <code>Pair</code> is comparable, otherwise will throw a 
-   * <code>ClassCastException</code>
-   * @author jonathanberant
-   *
-   * @param <T1>
-   * @param <T2>
-   */
-  public static class ByFirstPairComparator<T1,T2> implements Comparator<Pair<T1,T2>> {
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public int compare(Pair<T1, T2> pair1, Pair<T1, T2> pair2) {
-      return ((Comparable<T1>) pair1.first()).compareTo(pair2.first());
-    }
-  }
-  
-  /**
-   * Compares a <code>Pair</code> to another <code>Pair</code> according to the first object of the pair only in decreasing order
-   * This function will work providing
-   * the first element of the <code>Pair</code> is comparable, otherwise will throw a 
-   * <code>ClassCastException</code>
-   * @author jonathanberant
-   *
-   * @param <T1>
-   * @param <T2>
-   */
-  public static class ByFirstReversePairComparator<T1,T2> implements Comparator<Pair<T1,T2>> {
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public int compare(Pair<T1, T2> pair1, Pair<T1, T2> pair2) {
-      return -((Comparable<T1>) pair1.first()).compareTo(pair2.first());
-    }
-  }
-  
-  /**
-   * Compares a <code>Pair</code> to another <code>Pair</code> according to the second object of the pair only
-   * This function will work providing
-   * the first element of the <code>Pair</code> is comparable, otherwise will throw a 
-   * <code>ClassCastException</code>
-   * @author jonathanberant
-   *
-   * @param <T1>
-   * @param <T2>
-   */
-  public static class BySecondPairComparator<T1,T2> implements Comparator<Pair<T1,T2>> {
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public int compare(Pair<T1, T2> pair1, Pair<T1, T2> pair2) {
-      return ((Comparable<T2>) pair1.second()).compareTo(pair2.second());
-    }
-  }
-  
-  /**
-   * Compares a <code>Pair</code> to another <code>Pair</code> according to the second object of the pair only in decreasing order
-   * This function will work providing
-   * the first element of the <code>Pair</code> is comparable, otherwise will throw a 
-   * <code>ClassCastException</code>
-   * @author jonathanberant
-   *
-   * @param <T1>
-   * @param <T2>
-   */
-  public static class BySecondReversePairComparator<T1,T2> implements Comparator<Pair<T1,T2>> {
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public int compare(Pair<T1, T2> pair1, Pair<T1, T2> pair2) {
-      return -((Comparable<T2>) pair1.second()).compareTo(pair2.second());
-    }
-  }
-  
 }

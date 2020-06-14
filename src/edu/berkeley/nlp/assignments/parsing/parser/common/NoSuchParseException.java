@@ -8,8 +8,4 @@ public class NoSuchParseException extends NoSuchElementException {
   public NoSuchParseException() {
     super();
   }
-
-  public NoSuchParseException(String error) {
-    super(error);
-  }
 }

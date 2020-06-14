@@ -1,12 +1,8 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 
-import edu.berkeley.nlp.assignments.parsing.process.TokenizerFactory;
-import edu.berkeley.nlp.assignments.parsing.parser.metrics.AbstractEval;
+import edu.berkeley.nlp.assignments.parsing.ling.HasWord;
+import edu.berkeley.nlp.assignments.parsing.ling.Label;
 import edu.berkeley.nlp.assignments.parsing.trees.*;
-import edu.berkeley.nlp.assignments.parsing.ling.*;
-
-import java.util.Properties;
-import java.util.function.Predicate;
 import edu.berkeley.nlp.assignments.parsing.util.Index;
 
 import java.io.OutputStream;
@@ -103,21 +99,6 @@ public interface TreebankLangParserParams extends TreebankFactory, Serializable 
   TreeTransformer collinizerEvalb();
 
   /**
-   * returns a MemoryTreebank appropriate to the treebank source
-   */
-  MemoryTreebank memoryTreebank();
-
-  /**
-   * returns a DiskTreebank appropriate to the treebank source
-   */
-  DiskTreebank diskTreebank();
-
-  /**
-   * returns a MemoryTreebank appropriate to the testing treebank source
-   */
-  MemoryTreebank testMemoryTreebank();
-
-  /**
    * Required to extend TreebankFactory
    */
   Treebank treebank();
@@ -206,8 +187,6 @@ public interface TreebankLangParserParams extends TreebankFactory, Serializable 
    */
   List<? extends HasWord> defaultTestSentence();
 
-  TokenizerFactory<Tree> treeTokenizerFactory();
-
   Extractor<DependencyGrammar> dependencyGrammarExtractor(Options op, Index<String> wordIndex, Index<String> tagIndex);
 
   /**
@@ -215,29 +194,6 @@ public interface TreebankLangParserParams extends TreebankFactory, Serializable 
    * @return an array of doubles with smooth_aT_hTWd, smooth_aTW_hTWd, smooth_stop, and interp
    */
   double[] MLEDependencyGrammarSmoothingParams();
-
-  /**
-   * Returns a language specific object for evaluating PP attachment
-   *
-   * @return An object that implements {@link AbstractEval}
-   */
-  AbstractEval ppAttachmentEval();
-
-  /**
-   * Returns a function which reads the given filename and turns its
-   * content in a list of GrammaticalStructures.  Will throw
-   * UnsupportedOperationException if the language doesn't support
-   * dependencies or GrammaticalStructures.
-   */
-  List<GrammaticalStructure> readGrammaticalStructureFromFile(String filename);
-
-  /**
-   * Build a GrammaticalStructure from a Tree.  Throws
-   * UnsupportedOperationException if the language doesn't support
-   * dependencies or GrammaticalStructures.
-   */
-  GrammaticalStructure getGrammaticalStructure(Tree t, Predicate<String> filter,
-                                               HeadFinder hf);
 
   /** Whether our code provides support for converting phrase structure
    *  (constituency) parses to (basic) dependency parses.

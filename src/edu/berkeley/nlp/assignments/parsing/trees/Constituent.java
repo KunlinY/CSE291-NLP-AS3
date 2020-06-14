@@ -7,68 +7,38 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-/**
- * A <code>Constituent</code> object defines a generic edge in a graph.
- * The <code>Constituent</code> class is designed to be extended.  It
- * implements the <code>Comparable</code> interface in order to allow
- * graphs to be topologically sorted by the ordinary <code>Collection</code>
- * library in <code>java.util</code>, keying primarily on right-hand
- * node ID number.  The <code>Constituent</code> class implements most
- * of the functionality of the the <code>Label</code>
- * interface by passing all requests down to the <code>Label</code> which
- * might be contained in the <code>Constituent</code>.  This allows one
- * to put a <code>Constituent</code> anywhere that a <code>Label</code> is
- * required.  A <code>Constituent</code> is always <code>Scored</code>.
- *
- * @author Christopher Manning
- */
 public abstract class Constituent implements Labeled, Scored, Label {
 
   public Constituent() {}
 
-  /**
-   * access start node.
-   */
+  
   public abstract int start();
 
-  /**
-   * set start node.
-   */
+  
   public abstract void setStart(int start);
 
 
-  /**
-   * access end node.
-   */
+  
   public abstract int end();
 
 
-  /**
-   * set end node.
-   */
+  
   public abstract void setEnd(int end);
 
 
-  /**
-   * access label
-   */
+  
   public Label label() {
     return null;
   }
 
 
-  /**
-   * Sets the label associated with the current Constituent,
-   * if there is one.
-   */
+  
   public void setLabel(Label label) {
     // a noop
   }
 
 
-  /**
-   * Access labels -- actually always a singleton here.
-   */
+  
   public Collection<Label> labels() {
     return Collections.singletonList(label());
   }
@@ -79,17 +49,13 @@ public abstract class Constituent implements Labeled, Scored, Label {
   }
 
 
-  /**
-   * access score
-   */
+  
   public double score() {
     return Double.NaN;
   }
 
 
-  /**
-   * Sets the score associated with the current node, if there is one
-   */
+  
   public void setScore(double score) {
     // a no-op
   }
@@ -173,14 +139,7 @@ public abstract class Constituent implements Labeled, Scored, Label {
   }
 
 
-  /**
-   * A hashCode for Constituents done by shifting and or'ing for speed.
-   * Now includes the label if the constituent has one (otherwise things
-   * would work very badly if you were hashing constituents over the
-   * same span....).
-   *
-   * @return the integer hashCode
-   */
+  
   @Override
   public int hashCode() {
     int hash = (start() << 16) | end();
@@ -189,28 +148,13 @@ public abstract class Constituent implements Labeled, Scored, Label {
   }
 
 
-  /**
-   * Detects whether this constituent overlaps a constituent without
-   * nesting, that is, whether they "cross".
-   *
-   * @param c The constituent to check against
-   * @return True if the two constituents cross
-   */
+  
   public boolean crosses(Constituent c) {
     return (start() < c.start() && c.start() < end() && end() < c.end()) || (c.start() < start() && start() < c.end() && c.end() < end());
   }
 
 
-  /**
-   * Detects whether this constituent overlaps any of a Collection of
-   * Constituents without
-   * nesting, that is, whether it "crosses" any of them.
-   *
-   * @param constColl The set of constituent to check against
-   * @return True if some constituent in the collection is crossed
-   * @throws ClassCastException If some member of the Collection isn't
-   *                            a Constituent
-   */
+  
   public boolean crosses(Collection<Constituent> constColl) {
     for (Constituent c : constColl) {
       if (crosses(c)) {
@@ -221,14 +165,7 @@ public abstract class Constituent implements Labeled, Scored, Label {
   }
 
 
-  /**
-   * Detects whether this constituent contains a constituent, that is
-   * whether they are nested.  That is, the other constituent's yield is
-   * a sublist of this constituent's yield.
-   *
-   * @param c The constituent to check against
-   * @return True if the other Constituent is contained in this one
-   */
+  
   public boolean contains(Constituent c) {
     return start() <= c.start() && end() >= c.end();
   }
@@ -237,11 +174,7 @@ public abstract class Constituent implements Labeled, Scored, Label {
 
   // -- below here is stuff to implement the Label interface
 
-  /**
-   * Return the value of the label (or null if none).
-   *
-   * @return String the value for the label
-   */
+  
   public String value() {
     Label lab = label();
     if (lab == null) {
@@ -251,11 +184,7 @@ public abstract class Constituent implements Labeled, Scored, Label {
   }
 
 
-  /**
-   * Set the value for the label (if one is stored).
-   *
-   * @param value The value for the label
-   */
+  
   public void setValue(String value) {
     Label lab = label();
     if (lab != null) {

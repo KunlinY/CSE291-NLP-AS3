@@ -1,24 +1,19 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
 import edu.berkeley.nlp.assignments.parsing.trees.Tree;
 import edu.berkeley.nlp.assignments.parsing.trees.TreebankLanguagePack;
 import edu.berkeley.nlp.assignments.parsing.util.Generics;
 import edu.berkeley.nlp.assignments.parsing.util.HashIndex;
 import edu.berkeley.nlp.assignments.parsing.util.Index;
-import edu.berkeley.nlp.assignments.parsing.util.Interner;
-
-import static edu.berkeley.nlp.assignments.parsing.parser.lexparser.IntTaggedWord.ANY_WORD_INT;
-import static edu.berkeley.nlp.assignments.parsing.parser.lexparser.IntTaggedWord.ANY_TAG_INT;
-import static edu.berkeley.nlp.assignments.parsing.parser.lexparser.IntTaggedWord.STOP_WORD_INT;
-import static edu.berkeley.nlp.assignments.parsing.parser.lexparser.IntTaggedWord.STOP_TAG_INT;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.ObjectInputStream;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Map;
+
+import static edu.berkeley.nlp.assignments.parsing.parser.lexparser.IntTaggedWord.*;
 
 /**
  * An abstract base class for dependency grammars.  The only thing you have
@@ -32,8 +27,6 @@ import java.util.Map;
  */
 public abstract class AbstractDependencyGrammar implements DependencyGrammar  {
 
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(AbstractDependencyGrammar.class);
 
   protected TagProjection tagProjection;
   protected final Index<String> tagIndex;
@@ -160,10 +153,6 @@ public abstract class AbstractDependencyGrammar implements DependencyGrammar  {
 
   protected void initTagBins() {
     Index<String> tagBinIndex = new HashIndex<>();
-    if (DEBUG) {
-      log.info();
-      log.info("There are " + tagIndex.size() + " tags.");
-    }
     tagBin = new int[tagIndex.size()];
     for (int t = 0; t < tagBin.length; t++) {
       String tagStr = tagIndex.get(t);
@@ -174,17 +163,8 @@ public abstract class AbstractDependencyGrammar implements DependencyGrammar  {
         binStr = tagProjection.project(tagStr);
       }
       tagBin[t] = tagBinIndex.addToIndex(binStr);
-      if (DEBUG) {
-        log.info("initTagBins: Mapped " + tagStr + " (" + t +
-                           ") to " + binStr + " (" + tagBin[t] + ")");
-      }
     }
     numTagBins = tagBinIndex.size();
-    if (DEBUG) {
-      log.info("initTagBins: tags " + tagBin.length + " bins " +
-                         numTagBins);
-      log.info("tagBins: " + tagBinIndex);
-    }
   }
 
   public double score(IntDependency dependency) {

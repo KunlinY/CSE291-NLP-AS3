@@ -2,14 +2,9 @@ package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 import edu.berkeley.nlp.assignments.parsing.ling.CategoryWordTag;
 import edu.berkeley.nlp.assignments.parsing.ling.HasTag;
 import edu.berkeley.nlp.assignments.parsing.ling.Label;
-import edu.berkeley.nlp.assignments.parsing.parser.metrics.AbstractEval;
-import edu.berkeley.nlp.assignments.parsing.process.SerializableFunction;
-import edu.berkeley.nlp.assignments.parsing.process.TokenizerFactory;
 import edu.berkeley.nlp.assignments.parsing.stats.EquivalenceClasser;
 import edu.berkeley.nlp.assignments.parsing.trees.*;
-import edu.berkeley.nlp.assignments.parsing.trees.tregex.TregexMatcher;
 import edu.berkeley.nlp.assignments.parsing.util.Index;
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -38,14 +33,8 @@ import java.util.function.Predicate;
  */
 public abstract class AbstractTreebankParserParams implements TreebankLangParserParams  {
 
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(AbstractTreebankParserParams.class);
 
-  /**
-   * If true, then evaluation is over grammatical functions as well as the labels
-   * If false, then grammatical functions are stripped for evaluation.  This really
-   * only makes sense if you've trained with grammatical functions but want to evaluate without them.
-   */
+  
   protected boolean evalGF = true;
 
   /** The job of this class is to remove subcategorizations from
@@ -144,11 +133,7 @@ public abstract class AbstractTreebankParserParams implements TreebankLangParser
   protected boolean generateOriginalDependencies;
 
 
-  /**
-   * Stores the passed-in TreebankLanguagePack and sets up charset encodings.
-   *
-   * @param tlp The treebank language pack to use
-   */
+  
   protected AbstractTreebankParserParams(TreebankLanguagePack tlp) {
     this.tlp = tlp;
     inputEncoding = tlp.getEncoding();
@@ -161,107 +146,54 @@ public abstract class AbstractTreebankParserParams implements TreebankLangParser
     return headWord;
   }
 
-  /**
-   * Sets whether to consider grammatical functions in evaluation
-   */
+  
   @Override
   public void setEvaluateGrammaticalFunctions(boolean evalGFs) {
     this.evalGF = evalGFs;
   }
 
-  /**
-   * Sets the input encoding.
-   */
+  
   @Override
   public void setInputEncoding(String encoding) {
     inputEncoding = encoding;
   }
 
-  /**
-   * Sets the output encoding.
-   */
+  
   @Override
   public void setOutputEncoding(String encoding) {
     outputEncoding = encoding;
   }
 
-  /**
-   * Returns the output encoding being used.
-   */
+  
   @Override
   public String getOutputEncoding() {
     return outputEncoding;
   }
 
-  /**
-   * Returns the input encoding being used.
-   */
+  
   @Override
   public String getInputEncoding() {
     return inputEncoding;
   }
 
 
-  /**
-   * Returns a language specific object for evaluating PP attachment
-   *
-   * @return An object that implements {@link AbstractEval}
-   */
+  
   @Override
-  public AbstractEval ppAttachmentEval() {
+  public Treebank treebank() {
     return null;
   }
 
-  /**
-   * returns a MemoryTreebank appropriate to the treebank source
-   */
-  @Override
-  public abstract MemoryTreebank memoryTreebank();
-
-  /**
-   * returns a DiskTreebank appropriate to the treebank source
-   */
-  @Override
-  public abstract DiskTreebank diskTreebank();
-
-  /**
-   * You can often return the same thing for testMemoryTreebank as
-   * for memoryTreebank
-   */
-  @Override
-  public MemoryTreebank testMemoryTreebank() {
-    return memoryTreebank();
-  }
-
-  /**
-   * Implemented as required by TreebankFactory. Use diskTreebank() instead.
-   */
-  @Override
-  public Treebank treebank() {
-    return diskTreebank();
-  }
-
-  /**
-   * The PrintWriter used to print output. It's the responsibility of
-   * pw to deal properly with character encodings for the relevant
-   * treebank.
-   */
+  
   @Override
   public PrintWriter pw() {
     return pw(System.out);
   }
 
-  /**
-   * The PrintWriter used to print output. It's the responsibility of
-   * pw to deal properly with character encodings for the relevant
-   * treebank.
-   */
+  
   @Override
   public PrintWriter pw(OutputStream o) {
     String encoding = outputEncoding;
     if (!java.nio.charset.Charset.isSupported(encoding)) {
-      log.info("Warning: desired encoding " + encoding + " not accepted. ");
-      log.info("Using UTF-8 to construct PrintWriter");
       encoding = "UTF-8";
     }
 
@@ -269,34 +201,26 @@ public abstract class AbstractTreebankParserParams implements TreebankLangParser
     try {
       return new PrintWriter(new OutputStreamWriter(o, encoding), true);
     } catch (UnsupportedEncodingException e) {
-      log.info("Warning: desired encoding " + outputEncoding + " not accepted. " + e);
       try {
         return new PrintWriter(new OutputStreamWriter(o, "UTF-8"), true);
       } catch (UnsupportedEncodingException e1) {
-        log.info("Something is really wrong.  Your system doesn't even support UTF-8!" + e1);
         return new PrintWriter(o, true);
       }
     }
   }
 
 
-  /**
-   * Returns an appropriate treebankLanguagePack
-   */
+  
   @Override
   public TreebankLanguagePack treebankLanguagePack() {
     return tlp;
   }
 
-  /**
-   * The HeadFinder to use for your treebank.
-   */
+  
   @Override
   public abstract HeadFinder headFinder();
 
-  /**
-   * The HeadFinder to use when extracting typed dependencies.
-   */
+  
   @Override
   public abstract HeadFinder typedDependencyHeadFinder();
 
@@ -305,25 +229,14 @@ public abstract class AbstractTreebankParserParams implements TreebankLangParser
     return new BaseLexicon(op, wordIndex, tagIndex);
   }
 
-  /**
-   * Give the parameters for smoothing in the MLEDependencyGrammar.
-   * Defaults are the ones previously hard coded into MLEDependencyGrammar.
-   * @return an array of doubles with smooth_aT_hTWd, smooth_aTW_hTWd, smooth_stop, and interp
-   */
+  
   @Override
   public double[] MLEDependencyGrammarSmoothingParams() {
     return new double[] { 16.0, 16.0, 4.0, 0.6 };
   }
 
 
-  /**
-   * Takes a Tree and a collinizer and returns a Collection of labeled
-   * {@link Constituent}s for PARSEVAL.
-   * @param t The tree to extract constituents from
-   * @param collinizer The TreeTransformer used to normalize the tree for
-   *              evaluation
-   * @return The bag of Constituents for PARSEVAL.
-   */
+  
   public static Collection<Constituent> parsevalObjectify(Tree t, TreeTransformer collinizer) {
     return parsevalObjectify(t,collinizer,true);
   }
@@ -361,37 +274,27 @@ public abstract class AbstractTreebankParserParams implements TreebankLangParser
   }
 
 
-  /**
-   * Returns a collection of untyped word-word dependencies for the tree.
-   */
+  
   public static Collection<List<String>> untypedDependencyObjectify(Tree t, HeadFinder hf, TreeTransformer collinizer) {
     return dependencyObjectify(t, hf, collinizer, new UntypedDependencyTyper(hf));
   }
 
-  /**
-   * Returns a collection of unordered (but directed!) untyped word-word dependencies for the tree.
-   */
+  
   public static Collection<List<String>> unorderedUntypedDependencyObjectify(Tree t, HeadFinder hf, TreeTransformer collinizer) {
     return dependencyObjectify(t, hf, collinizer, new UnorderedUntypedDependencyTyper(hf));
   }
 
-  /**
-   * Returns a collection of word-word dependencies typed by mother, head, daughter node syntactic categories.
-   */
+  
   public static Collection<List<String>> typedDependencyObjectify(Tree t, HeadFinder hf, TreeTransformer collinizer) {
     return dependencyObjectify(t, hf, collinizer, new TypedDependencyTyper(hf));
   }
 
-  /**
-   * Returns a collection of unordered (but directed!) typed word-word dependencies for the tree.
-   */
+  
   public static Collection<List<String>> unorderedTypedDependencyObjectify(Tree t, HeadFinder hf, TreeTransformer collinizer) {
     return dependencyObjectify(t, hf, collinizer, new UnorderedTypedDependencyTyper(hf));
   }
 
-  /**
-   * Returns the set of dependencies in a tree, according to some {@link edu.berkeley.nlp.assignments.parsing.trees.DependencyTyper}.
-   */
+  
   public static <E> Collection<E> dependencyObjectify(Tree t, HeadFinder hf, TreeTransformer collinizer, DependencyTyper<E> typer) {
     Collection<E> deps = new ArrayList<>();
     Tree t1 = collinizer.transformTree(t);
@@ -526,41 +429,21 @@ public abstract class AbstractTreebankParserParams implements TreebankLangParser
   }
 
 
-  /**
-   * the tree transformer used to produce trees for evaluation.  Will
-   * be applied both to the parse output tree and to the gold
-   * tree. Should strip punctuation and maybe do some other things.
-   */
+  
   @Override
   public abstract TreeTransformer collinizer();
 
-  /**
-   * the tree transformer used to produce trees for evaluation.  Will
-   * be applied both to the parse output tree and to the gold
-   * tree. Should strip punctuation and maybe do some other
-   * things. The evalb version should strip some more stuff
-   * off. (finish this doc!)
-   */
+  
   @Override
   public abstract TreeTransformer collinizerEvalb();
 
 
-  /**
-   * Returns the splitting strings used for selective splits.
-   *
-   * @return An array containing ancestor-annotated Strings: categories
-   *         should be split according to these ancestor annotations.
-   */
+  
   @Override
   public abstract String[] sisterSplitters();
 
 
-  /**
-   * Returns a TreeTransformer appropriate to the Treebank which
-   * can be used to remove functional tags (such as "-TMP") from
-   * categories. Removes GFs if evalGF = false; if GFs were not used
-   * in training, results are equivalent.
-   */
+  
   @Override
   public TreeTransformer subcategoryStripper() {
     if(evalGF)
@@ -568,58 +451,21 @@ public abstract class AbstractTreebankParserParams implements TreebankLangParser
     return new RemoveGFSubcategoryStripper();
   }
 
-  /**
-   * This method does language-specific tree transformations such
-   * as annotating particular nodes with language-relevant features.
-   * Such parameterizations should be inside the specific
-   * TreebankLangParserParams class.  This method is recursively
-   * applied to each node in the tree (depth first, left-to-right),
-   * so you shouldn't write this method to apply recursively to tree
-   * members.  This method is allowed to (and in some cases does)
-   * destructively change the input tree {@code t}. It changes both
-   * labels and the tree shape.
-   *
-   * @param t The input tree (with non-language specific annotation already
-   *           done, so you need to strip back to basic categories)
-   * @param root The root of the current tree (can be null for words)
-   * @return The fully annotated tree node (with daughters still as you
-   *           want them in the final result)
-   */
+  
   @Override
   public abstract Tree transformTree(Tree t, Tree root);
 
-  /**
-   * Display (write to stderr) language-specific settings.
-   */
+  
   @Override
   public abstract void display();
 
-  /**
-   * Set language-specific options according to flags.
-   * This routine should process the option starting in args[i] (which
-   * might potentially be several arguments long if it takes arguments).
-   * It should return the index after the last index it consumed in
-   * processing.  In particular, if it cannot process the current option,
-   * the return value should be i.
-   * <p>
-   * Generic options are processed separately by
-   * {@link Options#setOption(String[],int)},
-   * and implementations of this method do not have to worry about them.
-   * The Options class handles routing options.
-   * TreebankParserParams that extend this class should call super when
-   * overriding this method.
-   */
+  
   @Override
   public int setOptionFlag(String[] args, int i) {
     return i;
   }
 
   private static final long serialVersionUID = 4299501909017975915L;
-
-  @Override
-  public TokenizerFactory<Tree> treeTokenizerFactory() {
-    return new TreeTokenizerFactory(treeReaderFactory());
-  }
 
   @Override
   public Extractor<DependencyGrammar> dependencyGrammarExtractor(Options op, Index<String> wordIndex, Index<String> tagIndex) {
@@ -634,63 +480,12 @@ public abstract class AbstractTreebankParserParams implements TreebankLangParser
     this.evalGF = evalGF;
   }
 
-  /**
-   * Annotation function for mapping punctuation to PTB-style equivalence classes.
-   *
-   * @author Spence Green
-   *
-   */
-  protected static class AnnotatePunctuationFunction implements SerializableFunction<TregexMatcher,String> {
-    private final String key;
-    private final String annotationMark;
-
-    public AnnotatePunctuationFunction(String annotationMark, String key) {
-      this.key = key;
-      this.annotationMark = annotationMark;
-    }
-
-    @Override
-    public String apply(TregexMatcher m) {
-      String punc = m.getNode(key).value();
-
-      return "";
-    }
-
-    @Override
-    public String toString() { return "AnnotatePunctuationFunction"; }
-
-    private static final long serialVersionUID = 1L;
-  }
-
-  @Override
-  public List<GrammaticalStructure>
-    readGrammaticalStructureFromFile(String filename)
-  {
-    throw new UnsupportedOperationException("This language does not support GrammaticalStructures or dependencies");
-  }
-
-  @Override
-  public GrammaticalStructure getGrammaticalStructure(Tree t,
-                                                      Predicate<String> filter,
-                                                      HeadFinder hf) {
-    throw new UnsupportedOperationException("This language does not support GrammaticalStructures or dependencies");
-  }
-
-  /**
-   * By default, parsers are assumed to not support dependencies.
-   * Only English and Chinese do at present.
-   */
   @Override
   public boolean supportsBasicDependencies() {
     return false;
   }
 
-  /**
-   * For languages that have implementations of the
-   * original Stanford dependencies and Universal
-   * dependencies, this parameter is used to decide which
-   * implementation should be used.
-   */
+  
   @Override
   public void setGenerateOriginalDependencies(boolean originalDependencies) {
     this.generateOriginalDependencies = originalDependencies;

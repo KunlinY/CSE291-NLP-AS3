@@ -3,7 +3,6 @@ package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 import edu.berkeley.nlp.assignments.parsing.ling.*;
 import edu.berkeley.nlp.assignments.parsing.trees.*;
 import edu.berkeley.nlp.assignments.parsing.stats.ClassicCounter;
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
 import java.util.*;
 
@@ -21,9 +20,6 @@ import java.util.*;
  * @author Christopher Manning
  */
 public class TreeBinarizer implements TreeTransformer  {
-
-  /** A logger for this class */
-  private static final Redwood.RedwoodChannels log = Redwood.channels(TreeBinarizer.class);
 
   private static final boolean DEBUG = false;
 
@@ -233,7 +229,6 @@ public class TreeBinarizer implements TreeTransformer  {
       newChildren.add(children[right]);
     } else {
       // this shouldn't happen, should have been caught above
-      log.info("Uh-oh, bad parameters passed to markovInsideBinarizeLocalTree");
     }
     // newChildren should be set up now with two children
     // make our new label
@@ -520,7 +515,6 @@ public class TreeBinarizer implements TreeTransformer  {
     headChild.pennPrint();
     */
     if (headChild == null && ! t.label().value().startsWith(tlp.startSymbol())) {
-      log.info("### No head found for:");
       t.pennPrint();
     }
     int headNum = -1;
@@ -604,104 +598,5 @@ public class TreeBinarizer implements TreeTransformer  {
     this.simpleLabels = simpleLabels;
     this.noRebinarization = noRebinarization;
   }
-
-
-  /**
-   *  Lets you test out the TreeBinarizer on the command line.
-   *  This main method doesn't yet handle as many flags as one would like.
-   *  But it does have:
-   *  <ul>
-   *  <li> -tlp TreebankLanguagePack
-   *  <li>-tlpp TreebankLangParserParams
-   *  <li>-insideFactor
-   *  <li>-markovOrder
-   *  </ul>
-   *
-   *  @param args Command line arguments: flags as above, as above followed by
-   *     treebankPath
-   */
-  public static void main(String[] args) {
-    TreebankLangParserParams tlpp = null;
-    // TreebankLangParserParams tlpp = new EnglishTreebankParserParams();
-    // TreeReaderFactory trf = new LabeledScoredTreeReaderFactory();
-    // Looks like it must build CategoryWordTagFactory!!
-    TreeReaderFactory trf = in -> new PennTreeReader(in,
-            new LabeledScoredTreeFactory(
-                new CategoryWordTagFactory()),
-            new BobChrisTreeNormalizer());
-
-    String fileExt = "mrg";
-    HeadFinder hf = new ModCollinsHeadFinder();
-    TreebankLanguagePack tlp = new PennTreebankLanguagePack();
-    boolean insideFactor = false;
-    boolean mf = false;
-    int mo = 1;
-    boolean uwl = false;
-    boolean uat = false;
-    double sst = 20.0;
-    boolean mfs = false;
-    boolean simpleLabels = false;
-    boolean noRebinarization = false;
-
-    int i = 0;
-    while (i < args.length && args[i].startsWith("-")) {
-      if (args[i].equalsIgnoreCase("-tlp") && i + 1 < args.length) {
-	try {
-	  tlp = (TreebankLanguagePack) Class.forName(args[i+1]).newInstance();
-	} catch (Exception e) {
-	  log.info("Couldn't instantiate: " + args[i+1]);
-          throw new RuntimeException(e);
-	}
-	i++;
-      } else if (args[i].equalsIgnoreCase("-tlpp") && i + 1 < args.length) {
-	try {
-	  tlpp = (TreebankLangParserParams) Class.forName(args[i+1]).newInstance();
-	} catch (Exception e) {
-	  log.info("Couldn't instantiate: " + args[i+1]);
-          throw new RuntimeException(e);
-	}
-	i++;
-      } else if (args[i].equalsIgnoreCase("-insideFactor")) {
-	insideFactor = true;
-      } else if (args[i].equalsIgnoreCase("-markovOrder") && i + 1 < args.length) {
-        i++;
-        mo = Integer.parseInt(args[i]);
-      } else if (args[i].equalsIgnoreCase("-simpleLabels")) {
-        simpleLabels = true;
-      } else if (args[i].equalsIgnoreCase("-noRebinarization")) {
-        noRebinarization = true;
-      } else {
-        log.info("Unknown option:" + args[i]);
-      }
-      i++;
-    }
-    if (i >= args.length) {
-      log.info("usage: java TreeBinarizer [-tlpp class|-markovOrder int|...] treebankPath");
-      System.exit(0);
-    }
-    Treebank treebank;
-    if (tlpp != null) {
-      treebank = tlpp.memoryTreebank();
-      tlp = tlpp.treebankLanguagePack();
-      fileExt = tlp.treebankFileExtension();
-      hf = tlpp.headFinder();
-    } else {
-      treebank = new DiskTreebank(trf);
-    }
-    treebank.loadPath(args[i], fileExt, true);
-
-    TreeTransformer tt = new TreeBinarizer(hf, tlp, insideFactor, mf, mo,
-					   uwl, uat, sst, mfs,
-                                           simpleLabels, noRebinarization);
-
-    for (Tree t : treebank) {
-      Tree newT = tt.transformTree(t);
-      System.out.println("Original tree:");
-      t.pennPrint();
-      System.out.println("Binarized tree:");
-      newT.pennPrint();
-      System.out.println();
-    }
-  } // end main
 
 }

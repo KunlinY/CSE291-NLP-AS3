@@ -1,6 +1,5 @@
 package edu.berkeley.nlp.assignments.parsing.trees;
 
-import edu.berkeley.nlp.assignments.parsing.io.ExtensionFileFilter;
 import edu.berkeley.nlp.assignments.parsing.stats.ClassicCounter;
 import edu.berkeley.nlp.assignments.parsing.stats.Counters;
 import edu.berkeley.nlp.assignments.parsing.util.Generics;
@@ -165,7 +164,6 @@ public abstract class Treebank extends AbstractCollection<Tree> {
    * @param recursively descend into subdirectories as well
    */
   public void loadPath(String pathName, String suffix, boolean recursively) {
-    loadPath(new File(pathName), new ExtensionFileFilter(suffix, recursively));
   }
 
 
@@ -177,7 +175,6 @@ public abstract class Treebank extends AbstractCollection<Tree> {
    * @param recursively descend into subdirectories as well
    */
   public void loadPath(File path, String suffix, boolean recursively) {
-    loadPath(path, new ExtensionFileFilter(suffix, recursively));
   }
 
 

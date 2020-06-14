@@ -91,13 +91,6 @@ public class CategoryWordTag extends StringLabel implements HasCategory, HasWord
     this.tag = tag;
   }
 
-  public void setCategoryWordTag(String category, String word, String tag) {
-    setCategory(category);
-    setWord(word);
-    setTag(tag);
-  }
-
-
   /**
    * Returns a <code>String</code> representation of the label.
    * This attempts to be somewhat clever in choosing to print or
@@ -109,19 +102,7 @@ public class CategoryWordTag extends StringLabel implements HasCategory, HasWord
    */
   @Override
   public String toString() {
-    if (category() != null) {
-      if ((word() == null || tag() == null) || !printWordTag || (suppressTerminalDetails && (word().equals(category()) || tag().equals(category())))) {
-        return category();
-      } else {
-        return category() + "[" + word() + "/" + tag() + "]";
-      }
-    } else {
-      if (tag() == null) {
-        return word();
-      } else {
-        return word() + "/" + tag();
-      }
-    }
+    return "";
   }
 
 
@@ -133,10 +114,7 @@ public class CategoryWordTag extends StringLabel implements HasCategory, HasWord
    * @return The label as a string
    */
   public String toString(String mode) {
-    if ("full".equals(mode)) {
-        return category() + "[" + word() + "/" + tag() + "]";
-    }
-    return toString();
+    return "";
   }
 
 

@@ -1,12 +1,11 @@
 package edu.berkeley.nlp.assignments.parsing.util;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.function.Supplier;
-
-import edu.berkeley.nlp.assignments.parsing.io.IOUtils;
-import edu.berkeley.nlp.assignments.parsing.io.RuntimeIOException;
 
 /**
  * Implements an Index that supports constant-time lookup in
@@ -334,14 +333,6 @@ public class HashIndex<E> extends AbstractCollection<E> implements Index<E>, Ran
 
   @Override
   public void saveToFilename(String file) {
-    try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-      for (int i = 0, sz = size(); i < sz; i++) {
-        bw.write(i + "=" + get(i) + '\n');
-      }
-    } catch (IOException e) {
-      throw new RuntimeIOException(e);
-    }
-    // give up
   }
 
   /**
@@ -352,19 +343,7 @@ public class HashIndex<E> extends AbstractCollection<E> implements Index<E>, Ran
    * @return An index built out of the lines in the file
    */
   public static Index<String> loadFromFilename(String file) {
-    Index<String> index = new HashIndex<>();
-    try (BufferedReader br = IOUtils.readerFromString(file)) {
-      for (String line; (line = br.readLine()) != null; ) {
-        int start = line.indexOf('=');
-        if (start == -1 || start == line.length() - 1) {
-          continue;
-        }
-        index.add(line.substring(start + 1));
-      }
-    } catch (IOException e) {
-      throw new RuntimeIOException(e);
-    }
-    return index;
+      return null;
   }
 
   /**
@@ -497,16 +476,7 @@ public class HashIndex<E> extends AbstractCollection<E> implements Index<E>, Ran
    * @return An index built out of the lines in the file
    */
   public static Index<String> loadFromFileWithList(String file) {
-    Index<String> index = new HashIndex<>();
-    try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-      for (String line; (line = br.readLine()) != null; ) {
-        index.add(line.trim());
-      }
-    } catch (Exception e) {
-      throw new RuntimeIOException(e);
-    }
-    // forget it
-    return index;
+    return null;
   }
 
   @Override

@@ -1,13 +1,8 @@
 package edu.berkeley.nlp.assignments.parsing.trees;
 
-import edu.berkeley.nlp.assignments.parsing.util.Timing;
-import edu.berkeley.nlp.assignments.parsing.ling.Label;
-
 import java.io.File;
 import java.io.FileFilter;
-import java.io.Reader;
 import java.util.Iterator;
-import java.util.Arrays;
 
 
 /** This class wraps another Treebank, and will vend trees that have been through
@@ -117,62 +112,6 @@ public class TransformingTreebank extends Treebank {
     return new TransformingTreebankIterator(tb.iterator(), transformer);
   }
 
-  /**
-   * Loads treebank grammar from first argument and prints it.
-   * Just a demonstration of functionality. <br>
-   * <code>usage: java MemoryTreebank treebankFilesPath</code>
-   *
-   * @param args array of command-line arguments
-   */
-  public static void main(String[] args) {
-    Timing.startTime();
-    Treebank treebank = new DiskTreebank(in -> new PennTreeReader(in));
-    Treebank treebank2 = new MemoryTreebank(in -> new PennTreeReader(in));
-    treebank.loadPath(args[0]);
-    treebank2.loadPath(args[0]);
-    CompositeTreebank c = new CompositeTreebank(treebank, treebank2);
-    Timing.endTime();
-    TreeTransformer myTransformer = new MyTreeTransformer();
-    TreeTransformer myTransformer2 = new MyTreeTransformer2();
-    TreeTransformer myTransformer3 = new MyTreeTransformer3();
-    Treebank tf1 = c.transform(myTransformer).transform(myTransformer2).transform(myTransformer3);
-    Treebank tf2 = new TransformingTreebank(new TransformingTreebank(new TransformingTreebank(c, myTransformer), myTransformer2), myTransformer3);
-    TreeTransformer[] tta = { myTransformer, myTransformer2, myTransformer3 };
-    TreeTransformer tt3 = new CompositeTreeTransformer(Arrays.asList(tta));
-    Treebank tf3 = c.transform(tt3);
-
-    System.out.println("-------------------------");
-    System.out.println("COMPOSITE (DISK THEN MEMORY REPEATED VERSION OF) INPUT TREEBANK");
-    System.out.println(c);
-    System.out.println("-------------------------");
-    System.out.println("SLOWLY TRANSFORMED TREEBANK, USING TransformingTreebank() CONSTRUCTOR");
-    Treebank tx1 = new TransformingTreebank(c, myTransformer);
-    System.out.println(tx1);
-    System.out.println("-----");
-    Treebank tx2 = new TransformingTreebank(tx1, myTransformer2);
-    System.out.println(tx2);
-    System.out.println("-----");
-    Treebank tx3 = new TransformingTreebank(tx2, myTransformer3);
-    System.out.println(tx3);
-    System.out.println("-------------------------");
-    System.out.println("TRANSFORMED TREEBANK, USING Treebank.transform()");
-    System.out.println(tf1);
-    System.out.println("-------------------------");
-    System.out.println("PRINTING AGAIN TRANSFORMED TREEBANK, USING Treebank.transform()");
-    System.out.println(tf1);
-    System.out.println("-------------------------");
-    System.out.println("TRANSFORMED TREEBANK, USING TransformingTreebank() CONSTRUCTOR");
-    System.out.println(tf2);
-    System.out.println("-------------------------");
-    System.out.println("TRANSFORMED TREEBANK, USING CompositeTreeTransformer");
-    System.out.println(tf3);
-    System.out.println("-------------------------");
-    System.out.println("COMPOSITE (DISK THEN MEMORY REPEATED VERSION OF) INPUT TREEBANK");
-    System.out.println(c);
-    System.out.println("-------------------------");
-  } // end main
-
-
   private static class TransformingTreebankIterator implements Iterator<Tree> {
 
     private Iterator<Tree> iter;
@@ -203,56 +142,5 @@ public class TransformingTreebank extends Treebank {
     }
 
   } // end static class TransformingTreebankIterator
-
-
-  private static class MyTreeTransformer implements TreeTransformer {
-
-    public Tree transformTree(Tree tree) {
-      Tree treeCopy = tree.deepCopy();
-      for (Tree subtree : treeCopy) {
-        if (subtree.depth() < 2) {
-          continue;
-        }
-        String categoryLabel = subtree.label().toString();
-        Label label = subtree.label();
-        label.setFromString(categoryLabel+"-t1");
-      }
-      return treeCopy;
-    }
-  }
-
-
-  private static class MyTreeTransformer2 implements TreeTransformer {
-
-    public Tree transformTree(Tree tree) {
-      Tree treeCopy = tree.deepCopy();
-      for (Tree subtree : treeCopy) {
-        if (subtree.depth() < 1) {
-          continue;
-        }
-        String categoryLabel = subtree.label().toString();
-        Label label = subtree.label();
-        label.setFromString(categoryLabel+"-t2");
-      }
-      return treeCopy;
-    }
-  }
-
-
-  private static class MyTreeTransformer3 implements TreeTransformer {
-
-    public Tree transformTree(Tree tree) {
-      Tree treeCopy = tree.deepCopy();
-      for (Tree subtree : treeCopy) {
-        if (subtree.depth() < 2) {
-          continue;
-        }
-        String categoryLabel = subtree.label().toString();
-        Label label = subtree.label();
-        label.setFromString(categoryLabel+"-t3");
-      }
-      return treeCopy;
-    }
-  }
 
 }

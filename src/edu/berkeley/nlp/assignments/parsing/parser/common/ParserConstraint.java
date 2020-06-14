@@ -35,12 +35,6 @@ public class ParserConstraint implements Serializable {
   
   private static final long serialVersionUID = 2;
 
-  //public ParserConstraint() {}
-
-  public ParserConstraint(int start, int end, String pattern) {
-    this(start, end, Pattern.compile(pattern));
-  }
-
   public ParserConstraint(int start, int end, Pattern state) {
     this.start = start;
     this.end = end;

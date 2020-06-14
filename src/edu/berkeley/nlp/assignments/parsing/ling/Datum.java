@@ -6,7 +6,6 @@ import java.io.Serializable;
 /**
  * Interface for Objects which can be described by their features.
  * An Object is described by a Datum as a List of categorical features.
- * (For features which have numeric values, see {@link RVFDatum}.
  * These objects can also be Serialized (for insertion into a file database).
  *
  * @author Sepandar Kamvar (sdkamvar@stanford.edu)

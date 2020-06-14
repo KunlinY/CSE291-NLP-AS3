@@ -2,12 +2,6 @@ package edu.berkeley.nlp.assignments.parsing.stats;
 
 import edu.berkeley.nlp.assignments.parsing.math.SloppyMath;
 
-/**
- * Default implementations of all the convenience methods provided by
- * {@link Counter}.
- *
- * @author dramage
- */
 public abstract class AbstractCounter<E> implements Counter<E> {
 
   public double logIncrementCount(E key, double amount) {

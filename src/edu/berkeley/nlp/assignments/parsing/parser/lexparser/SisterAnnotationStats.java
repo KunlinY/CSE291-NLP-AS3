@@ -1,12 +1,11 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 
-import edu.berkeley.nlp.assignments.parsing.ling.StringLabelFactory;
-import edu.berkeley.nlp.assignments.parsing.trees.*;
 import edu.berkeley.nlp.assignments.parsing.stats.ClassicCounter;
 import edu.berkeley.nlp.assignments.parsing.stats.Counters;
+import edu.berkeley.nlp.assignments.parsing.trees.Tree;
+import edu.berkeley.nlp.assignments.parsing.trees.TreeVisitor;
 import edu.berkeley.nlp.assignments.parsing.util.Pair;
 
-import java.io.Reader;
 import java.text.NumberFormat;
 import java.util.*;
 
@@ -311,39 +310,6 @@ public class SisterAnnotationStats implements TreeVisitor {
     }
     System.out.println(";");
 
-  }
-
-
-  /**
-   * Calculate sister annotation statistics suitable for doing
-   * selective sister splitting in the PCFGParser inside the
-   * FactoredParser.
-   *
-   * @param args One argument: path to the Treebank
-   */
-  public static void main(String[] args) {
-
-    ClassicCounter<String> c = new ClassicCounter<>();
-    c.setCount("A", 0);
-    c.setCount("B", 1);
-
-    double d = Counters.klDivergence(c, c);
-    System.out.println("KL Divergence: " + d);
-
-
-    String encoding = "UTF-8";
-    if (args.length > 1) {
-      encoding = args[1];
-    }
-    if (args.length < 1) {
-      System.out.println("Usage: ParentAnnotationStats treebankPath");
-    } else {
-      SisterAnnotationStats pas = new SisterAnnotationStats();
-      Treebank treebank = new DiskTreebank(in -> new PennTreeReader(in, new LabeledScoredTreeFactory(new StringLabelFactory()), new BobChrisTreeNormalizer()), encoding);
-      treebank.loadPath(args[0]);
-      treebank.apply(pas);
-      pas.printStats();
-    }
   }
 
 }

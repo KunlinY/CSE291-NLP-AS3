@@ -24,21 +24,11 @@ public class LabeledScoredTreeReaderFactory implements TreeReaderFactory {
    */
   public LabeledScoredTreeReaderFactory() {
     lf = CoreLabel.factory();
-    tm = new BobChrisTreeNormalizer();
-  }
-
-  public LabeledScoredTreeReaderFactory(LabelFactory lf) {
-    this.lf = lf;
-    tm = new BobChrisTreeNormalizer();
+    tm = null;
   }
 
   public LabeledScoredTreeReaderFactory(TreeNormalizer tm) {
     lf = CoreLabel.factory();
-    this.tm = tm;
-  }
-
-  public LabeledScoredTreeReaderFactory(LabelFactory lf, TreeNormalizer tm) {
-    this.lf = lf;
     this.tm = tm;
   }
 
@@ -51,6 +41,6 @@ public class LabeledScoredTreeReaderFactory implements TreeReaderFactory {
    * construction).
    */
   public TreeReader newTreeReader(Reader in) {
-    return new PennTreeReader(in, new LabeledScoredTreeFactory(lf), tm);
+    return null;
   }
 }

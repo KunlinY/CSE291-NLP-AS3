@@ -3,7 +3,6 @@ package edu.berkeley.nlp.assignments.parsing.parser.lexparser;
 import java.io.Serializable;
 
 import edu.berkeley.nlp.assignments.parsing.util.Index;
-import edu.berkeley.nlp.assignments.parsing.util.StringUtils;
 
 /**
  * Binary rules (ints for parent, left and right children)
@@ -49,12 +48,6 @@ public class BinaryRule implements Rule, Comparable<BinaryRule>, Serializable {
    * @param index Index used to convert String names to ints
    */
   public BinaryRule(String s, Index<String> index) {
-    String[] fields = StringUtils.splitOnCharWithQuoting(s, ' ', '\"', '\\');
-    //    System.out.println("fields:\n" + fields[0] + "\n" + fields[2] + "\n" + fields[3] + "\n" + fields[4]);
-    this.parent = index.addToIndex(fields[0]);
-    this.leftChild = index.addToIndex(fields[2]);
-    this.rightChild = index.addToIndex(fields[3]);
-    this.score = Float.parseFloat(fields[4]);
   }
 
   public float score() {
@@ -97,17 +90,11 @@ public class BinaryRule implements Rule, Comparable<BinaryRule>, Serializable {
   }
 
   public String toString(Index<String> index) {
-    return '\"' + StringUtils.escapeString(index.get(parent), charsToEscape, '\\') + "\" -> \"" + StringUtils.escapeString(index.get(leftChild), charsToEscape, '\\') + "\" \"" + StringUtils.escapeString(index.get(rightChild), charsToEscape, '\\') + "\" " + score;
+    return "";
   }
 
   private transient String cached; // = null;
 
-  public String toStringNoScore(Index<String> index) {
-    if (cached == null) {
-      cached = '\"' + StringUtils.escapeString(index.get(parent), charsToEscape, '\\') + "\" -> \"" + StringUtils.escapeString(index.get(leftChild), charsToEscape, '\\') + "\" \"" + StringUtils.escapeString(index.get(rightChild), charsToEscape, '\\');
-    }
-    return cached;
-  }
 
   public int compareTo(BinaryRule br) {
     if (parent < br.parent) {

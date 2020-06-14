@@ -1,7 +1,4 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
-
-import edu.berkeley.nlp.assignments.parsing.io.EncodingPrintWriter;
 import edu.berkeley.nlp.assignments.parsing.ling.TaggedWord;
 import edu.berkeley.nlp.assignments.parsing.stats.ClassicCounter;
 import edu.berkeley.nlp.assignments.parsing.util.Index;
@@ -10,9 +7,6 @@ import edu.berkeley.nlp.assignments.parsing.util.Index;
 public class EnglishUnknownWordModelTrainer
   extends AbstractUnknownWordModelTrainer
 {
-
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(EnglishUnknownWordModelTrainer.class);
 
   private static final boolean DOCUMENT_UNKNOWNS = false;
 
@@ -38,13 +32,6 @@ public class EnglishUnknownWordModelTrainer
 
     model = new EnglishUnknownWordModel(op, lex, wordIndex, tagIndex,
                                         unSeenCounter);
-
-    // scan data
-    if (DOCUMENT_UNKNOWNS) {
-      log.info("Collecting " + Lexicon.UNKNOWN_WORD +
-                         " from trees " + (indexToStartUnkCounting + 1) +
-                         " to " + totalTrees);
-    }
   }
 
   /**
@@ -65,14 +52,6 @@ public class EnglishUnknownWordModelTrainer
         // it's an entirely unknown word
         int s = model.getSignatureIndex(iTW.word, loc,
                                         wordIndex.get(iTW.word));
-        if (DOCUMENT_UNKNOWNS) {
-          String wStr = wordIndex.get(iTW.word);
-          String tStr = tagIndex.get(iTW.tag);
-          String sStr = wordIndex.get(s);
-          EncodingPrintWriter.err.println("Unknown word/tag/sig:\t" +
-                                          wStr + '\t' + tStr + '\t' +
-                                          sStr, "UTF-8");
-        }
         IntTaggedWord iTS = new IntTaggedWord(s, iTW.tag);
         IntTaggedWord iS = new IntTaggedWord(s, nullTag);
         unSeenCounter.incrementCount(iTS, weight);

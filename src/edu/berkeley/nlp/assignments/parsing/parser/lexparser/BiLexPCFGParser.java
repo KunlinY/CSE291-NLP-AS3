@@ -1,19 +1,16 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
-import java.util.*;
-
-import edu.berkeley.nlp.assignments.parsing.ling.CategoryWordTag;
-import edu.berkeley.nlp.assignments.parsing.ling.CoreLabel;
-import edu.berkeley.nlp.assignments.parsing.ling.HasContext;
-import edu.berkeley.nlp.assignments.parsing.ling.HasWord;
-import edu.berkeley.nlp.assignments.parsing.ling.Label;
+import edu.berkeley.nlp.assignments.parsing.ling.*;
 import edu.berkeley.nlp.assignments.parsing.math.SloppyMath;
 import edu.berkeley.nlp.assignments.parsing.parser.KBestViterbiParser;
+import edu.berkeley.nlp.assignments.parsing.trees.LabeledScoredTreeFactory;
 import edu.berkeley.nlp.assignments.parsing.trees.Tree;
 import edu.berkeley.nlp.assignments.parsing.trees.TreeFactory;
-import edu.berkeley.nlp.assignments.parsing.trees.LabeledScoredTreeFactory;
-import edu.berkeley.nlp.assignments.parsing.util.*;
+import edu.berkeley.nlp.assignments.parsing.util.Heap;
+import edu.berkeley.nlp.assignments.parsing.util.Index;
+import edu.berkeley.nlp.assignments.parsing.util.ScoredObject;
+
+import java.util.*;
 
 
 /** Implements Eisner and Satta style algorithms for bilexical
@@ -24,9 +21,6 @@ import edu.berkeley.nlp.assignments.parsing.util.*;
  *  @author Dan Klein
  */
 public class BiLexPCFGParser implements KBestViterbiParser  {
-
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(BiLexPCFGParser.class);
 
   protected static final boolean VERBOSE = false;
   protected static final boolean VERY_VERBOSE = false;
@@ -190,9 +184,6 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
   protected Edge tempEdge;
 
   protected void combine(Edge edge, Hook hook) {
-    if (VERBOSE) {
-      log.info("Combining: " + edge + " and " + hook);
-    }
     // make result edge
     if (hook.isPreHook()) {
       tempEdge.start = edge.start;
@@ -233,17 +224,6 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
         try {
           agenda.decreaseKey(resultEdge);
         } catch (NullPointerException e) {
-          if (false) {
-            log.info("");
-            log.info("Old backEdge: " + backE + " i " + backE.iScore + " o " + backE.oScore + " s " + backE.score());
-            log.info("Old backEdge: " + backE + " iE " + scorer.iScore(backE));
-            log.info("Old backHook: " + backH + " i " + backH.iScore + " o " + backH.oScore + " s " + backH.score());
-            log.info("New backEdge: " + tempEdge.backEdge + " i " + tempEdge.backEdge.iScore + " o " + tempEdge.backEdge.oScore + " s " + tempEdge.backEdge.score());
-            log.info("New backEdge: " + tempEdge.backEdge + " iE " + scorer.iScore(tempEdge.backEdge));
-            log.info("New backHook: " + tempEdge.backHook + " i " + tempEdge.backHook.iScore + " o " + tempEdge.backHook.oScore + " s " + tempEdge.backHook.score());
-            log.error("Formed " + resultEdge + " i " + tempEdge.iScore + " o " + resultEdge.oScore + " s " + resultEdge.score());
-            log.error("Formed " + resultEdge + " " + (resultEdge == tempEdge ? "new" : "old") + " " + tempEdge.iScore + " was " + back + " better? " + better(tempEdge.iScore, back));
-          }
         }
       }
     }
@@ -398,14 +378,6 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
     // we might have built a synth edge, enabling some old real edges to project hooks (the difference between this method and triggerAllHooks is that here we look only at realEdges)
     boolean newL = !chart.isBuiltL(edge.state, edge.start, edge.head, edge.tag);
     boolean newR = !chart.isBuiltR(edge.state, edge.end, edge.head, edge.tag);
-    if (VERY_VERBOSE) {
-      if (newL) {
-        log.info("Triggering on L: " + edge);
-      }
-      if (newR) {
-        log.info("Triggering on R: " + edge);
-      }
-    }
     chart.registerEdgeIndexes(edge);
     if (newR) {
       // PRE HOOKS
@@ -449,14 +421,6 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
     // we might have built a new edge, enabling some old edges to project hooks
     boolean newL = !chart.isBuiltL(edge.state, edge.start, edge.head, edge.tag);
     boolean newR = !chart.isBuiltR(edge.state, edge.end, edge.head, edge.tag);
-    if (VERY_VERBOSE) {
-      if (newL) {
-        log.info("Triggering on L: " + edge);
-      }
-      if (newR) {
-        log.info("Triggering on R: " + edge);
-      }
-    }
     chart.registerEdgeIndexes(edge);
     if (newR) {
       // PRE HOOKS
@@ -481,10 +445,6 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
       for (Iterator rI = bg.ruleIteratorByRightChild(edge.state); rI.hasNext();) {
         BinaryRule br = (BinaryRule) rI.next();
         Collection<Edge> edges = chart.getRealEdgesWithR(br.leftChild, edge.start);
-        if (VERBOSE) {
-          log.info("Looking for: " + stateIndex.get(br.leftChild) + " ending at " + edge.start);
-          log.info("Found: " + edges);
-        }
         for (Edge real : edges) {
           tempHook.start = real.start;
           tempHook.end = real.end;
@@ -503,9 +463,6 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
 
   protected void relaxTempHook() {
     relaxHook1++;
-    if (VERBOSE) {
-      log.info("Considering: " + tempHook + " iP: " + scorer.iPossible(tempHook) + " oP: " + scorer.oPossible(tempHook));
-    }
     if (!op.testOptions.exhaustiveTest) {
       if (!scorer.oPossible(tempHook) || !scorer.iPossible(tempHook)) {
         return;
@@ -515,9 +472,6 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
     Hook resultHook = (Hook) interner.intern(tempHook);
     if (VERBOSE) {
       System.err.printf("Formed %s %s %f was %f\n", resultHook, (resultHook == tempHook ? "new" : "old"), tempHook.iScore, resultHook.iScore);
-      if (resultHook.backEdge != null) {
-        log.info("  Backtrace: " + resultHook.backEdge);
-      }
     }
     if (resultHook == tempHook) {
       relaxHook3++;
@@ -553,10 +507,6 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
   }
 
   protected void processEdge(Edge edge) {
-    // add to chart
-    if (VERBOSE) {
-      log.info("Adding to chart: " + edge);
-    }
     chart.addEdge(edge);
     // fetch existing hooks that can combine with it and combine them
     for (Hook hook : chart.getPreHooks(edge)) {
@@ -666,47 +616,7 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
         taggedWordList[i].add(new IntTaggedWord(word, tag));
       }
     }
-    if (op.testOptions.verbose) {
-      log.info("Terminals (# of tag edges in chart): " +
-                         terminalCount);
-    }
     return itemList;
-  }
-
-  protected void scoreDependencies() {
-    // just leach it off the dparser for now...
-    /*
-    IntDependency dependency = new IntDependency();
-    for (int head = 0; head < words.length; head++) {
-      for (int hTag = 0; hTag < tagIndex.size(); hTag++) {
-        for (int arg = 0; arg < words.length; arg++) {
-          for (int aTag = 0; aTag < tagIndex.size(); aTag++) {
-            Arrays.fill(depScore[head][hTag][arg][aTag],Float.NEGATIVE_INFINITY);
-          }
-        }
-      }
-    }
-    for (int head = 0; head < words.length; head++) {
-      for (int arg = 0; arg < words.length; arg++) {
-        if (head == arg)
-          continue;
-        for (Iterator<IntTaggedWord> headTWI=taggedWordList[head].iterator(); headTWI.hasNext();) {
-          IntTaggedWord headTW = headTWI.next();
-          for (Iterator<IntTaggedWord> argTWI=taggedWordList[arg].iterator(); argTWI.hasNext();) {
-            IntTaggedWord argTW = argTWI.next();
-            dependency.head = headTW;
-            dependency.arg = argTW;
-            dependency.leftHeaded = (head < arg);
-            dependency.distance = Math.abs(head-arg);
-            depScore[head][headTW.tag][arg][argTW.tag] =
-              dg.score(dependency);
-            if (false && depScore[head][headTW.tag][arg][argTW.tag] > -100)
-              log.info(wordIndex.get(headTW.word)+"/"+tagIndex.get(headTW.tag)+" -> "+wordIndex.get(argTW.word)+"/"+tagIndex.get(argTW.tag)+" score "+depScore[head][headTW.tag][arg][argTW.tag]);
-          }
-        }
-      }
-    }
-    */
   }
 
   protected void setGoal(int length) {
@@ -722,7 +632,7 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
   protected void initialize(List<? extends HasWord> words) {
     length = words.size();
     interner = new Interner();
-    agenda = new ArrayHeap<>(ScoredComparator.DESCENDING_COMPARATOR);
+    agenda = null;
     chart = new HookChart();
     setGoal(length);
     List<Item> initialItems = makeInitialItems(words);
@@ -757,9 +667,6 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
     builtEdges = 0;
     extractedHooks = 0;
     extractedEdges = 0;
-    if (op.testOptions.verbose) {
-      Timing.tick("Starting combined parse.");
-    }
     dparser.binDistance = dparser.binDistance; // THIS IS TERRIBLE, BUT SAVES MEMORY
     initialize(words);
     while (!agenda.isEmpty()) {
@@ -772,34 +679,12 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
       }
       if (relaxHook1 > last + 1000000) {
         last = relaxHook1;
-        if (op.testOptions.verbose) {
-          log.info("Proposed hooks:   " + relaxHook1);
-          log.info("Unfiltered hooks: " + relaxHook2);
-          log.info("Built hooks:      " + relaxHook3);
-          log.info("Waste hooks:      " + relaxHook4);
-          log.info("Extracted hooks:  " + exHook);
-        }
       }
       if (item.end - item.start > spanFound) {
         spanFound = item.end - item.start;
-        if (op.testOptions.verbose) {
-          log.info(spanFound + " ");
-        }
       }
       //if (item.end < 5) log.info("Extracted: "+item+" iScore "+item.iScore+" oScore "+item.oScore+" score "+item.score());
       if (item.equals(goal)) {
-        if (op.testOptions.verbose) {
-          log.info("Found goal!");
-          log.info("Comb iScore " + item.iScore); // was goal.iScore
-          Timing.tick("Done, parse found.");
-          log.info("Built items:      " + (builtEdges + builtHooks));
-          log.info("Built hooks:      " + builtHooks);
-          log.info("Built edges:      " + builtEdges);
-          log.info("Extracted items:  " + (extractedEdges + extractedHooks));
-          log.info("Extracted hooks:  " + extractedHooks);
-          log.info("Extracted edges:  " + extractedEdges);
-          //postMortem();
-        }
         if (op.testOptions.printFactoredKGood <= 0) {
           goal = (Edge) item;
           interner = null;
@@ -811,13 +696,7 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
           nGoodTrees.add(goal);
           nGoodRemaining--;
           if (nGoodRemaining > 0) {
-            if (VERBOSE) {
-              log.info("Found parse! Number of remaining trees to find = " + nGoodRemaining);
-            }
           } else {
-            if (VERBOSE) {
-              log.info("Found last parse!");
-            }
             interner = null;
             agenda = null;
             return true;
@@ -828,17 +707,10 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
       if (item.score() == Double.NEGATIVE_INFINITY) {
         // Do not report failure in nGood mode if we found something earlier.
         if (nGoodTrees.size() > 0) {
-          if (VERBOSE) {
-            log.info("Aborting kGood search because of an unacceptable (-Inf) item: " + item);
-          }
           goal = nGoodTrees.get(0);
           interner = null;
           agenda = null;
           return true;
-        }
-        log.info("FactoredParser: no consistent parse [hit A*-blocked edges, aborting].");
-        if (op.testOptions.verbose) {
-          Timing.tick("FactoredParser: no consistent parse [hit A*-blocked edges, aborting].");
         }
         return false;
       }
@@ -846,71 +718,24 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
       if (op.testOptions.MAX_ITEMS > 0 && (builtEdges + builtHooks) >= op.testOptions.MAX_ITEMS) {
         // Do not report failure in kGood mode if we found something earlier.
         if (nGoodTrees.size() > 0) {
-          log.info("DEBUG: aborting search because of reaching the MAX_ITEMS work limit [" +
-                             op.testOptions.MAX_ITEMS + " items]");
           goal = nGoodTrees.get(0);
           interner = null;
           agenda = null;
           return true;
         }
-        log.info("FactoredParser: exceeded MAX_ITEMS work limit [" +
-                           op.testOptions.MAX_ITEMS + " items]; aborting.");
-        if (op.testOptions.verbose) {
-          Timing.tick("FactoredParser: exceeded MAX_ITEMS work limit [" +
-                      op.testOptions.MAX_ITEMS + " items]; aborting.");
-        }
         return false;
-      }
-      if (VERBOSE && item.score() != Double.NEGATIVE_INFINITY) {
-        System.err.printf("Removing from agenda: %s score i %.2f + o %.2f = %.2f\n", item, item.iScore, item.oScore, item.score());
-        if (item.backEdge != null) {
-          log.info("  Backtrace: " + item.backEdge.toString() + " " + (item.isEdge() ? (((Edge) item).backHook != null ? ((Edge) item).backHook.toString() : "") : ""));
-        }
       }
       processItem(item);
     } // end while agenda is not empty
     // If we are here, the agenda is empty.
     // Do not report failure if we found something earlier.
     if (nGoodTrees.size() > 0) {
-      log.info("DEBUG: aborting search because of empty agenda");
       goal = nGoodTrees.get(0);
       interner = null;
       agenda = null;
       return true;
     }
-    log.info("FactoredParser: emptied agenda, no parse found!");
-    if (op.testOptions.verbose) {
-      Timing.tick("FactoredParser: emptied agenda, no parse found!");
-    }
     return false;
-  }
-
-
-  protected void postMortem() {
-    int numHooks = 0;
-    int numEdges = 0;
-    int numUnmatchedHooks = 0;
-    int total = agenda.size();
-    int done = 0;
-    while (!agenda.isEmpty()) {
-      Item item = agenda.extractMin();
-      done++;
-      //if(done % (total/10) == 0)
-      //        log.info("Scanning: "+100*done/total);
-      if (item.isEdge()) {
-        numEdges++;
-      } else {
-        numHooks++;
-        Collection edges = chart.getEdges((Hook) item);
-        if (edges.size() == 0) {
-          numUnmatchedHooks++;
-        }
-      }
-    }
-    log.info("--- Agenda Post-Mortem ---");
-    log.info("Edges:           " + numEdges);
-    log.info("Hooks:           " + numHooks);
-    log.info("Unmatched Hooks: " + numUnmatchedHooks);
   }
 
   protected int project(int state) {
@@ -944,9 +769,6 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
     @Override
     protected void relaxTempHook() {
       relaxHook1++;
-      if (VERBOSE) {
-        log.info("Considering: " + tempHook + " iP: " + scorer.iPossible(tempHook) + " oP: " + scorer.oPossible(tempHook));
-      }
       if (!op.testOptions.exhaustiveTest) {
         if (!scorer.oPossible(tempHook) || !scorer.iPossible(tempHook)) {
           return;
@@ -954,10 +776,6 @@ public class BiLexPCFGParser implements KBestViterbiParser  {
       }
       relaxHook2++;
       Hook resultHook = tempHook;
-      //Hook resultHook = (Hook)interner.intern(tempHook);
-      if (VERBOSE) {
-        log.info("Formed " + resultHook + " " + (resultHook == tempHook ? "new" : "old") + " " + tempHook.iScore + " was " + resultHook.iScore);
-      }
       if (resultHook == tempHook) {
         relaxHook3++;
         tempHook = new Hook(op.testOptions.exhaustiveTest);

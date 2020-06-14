@@ -40,12 +40,7 @@ public class LabeledScoredTreeFactory extends SimpleTreeFactory {
     return new LabeledScoredTreeNode(lf.newLabel(word));
   }
 
-  /**
-   * Create a new leaf node with the given label
-   *
-   * @param label the label for the leaf node
-   * @return A new tree leaf
-   */
+  
   @Override
   public Tree newLeaf(Label label) {
     return new LabeledScoredTreeNode(lf.newLabel(label));

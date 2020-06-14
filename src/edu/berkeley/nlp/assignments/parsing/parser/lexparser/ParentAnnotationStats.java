@@ -1,14 +1,14 @@
 package edu.berkeley.nlp.assignments.parsing.parser.lexparser; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
-import edu.berkeley.nlp.assignments.parsing.io.NumberRangeFileFilter;
-import edu.berkeley.nlp.assignments.parsing.ling.StringLabelFactory;
-import edu.berkeley.nlp.assignments.parsing.trees.*;
 import edu.berkeley.nlp.assignments.parsing.stats.ClassicCounter;
 import edu.berkeley.nlp.assignments.parsing.stats.Counters;
+import edu.berkeley.nlp.assignments.parsing.trees.Tree;
+import edu.berkeley.nlp.assignments.parsing.trees.TreeVisitor;
+import edu.berkeley.nlp.assignments.parsing.trees.Treebank;
+import edu.berkeley.nlp.assignments.parsing.trees.TreebankLanguagePack;
 import edu.berkeley.nlp.assignments.parsing.util.Generics;
 import edu.berkeley.nlp.assignments.parsing.util.Pair;
-import java.io.Reader;
+
 import java.text.NumberFormat;
 import java.util.*;
 
@@ -22,7 +22,6 @@ import java.util.*;
 public class ParentAnnotationStats implements TreeVisitor  {
 
   /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(ParentAnnotationStats.class);
 
   private final TreebankLanguagePack tlp;
 
@@ -419,52 +418,6 @@ public class ParentAnnotationStats implements TreeVisitor  {
 
 
   /**
-   * Calculate parent annotation statistics suitable for doing
-   * selective parent splitting in the PCFGParser inside
-   * FactoredParser.  <p>
-   * Usage: java edu.berkeley.nlp.assignments.parsing.parser.lexparser.ParentAnnotationStats
-   * [-tags] treebankPath
-   *
-   * @param args One argument: path to the Treebank
-   */
-  public static void main(String[] args) {
-    boolean doTags = false;
-    if (args.length < 1) {
-      System.out.println("Usage: java edu.berkeley.nlp.assignments.parsing.parser.lexparser.ParentAnnotationStats [-tags] treebankPath");
-    } else {
-      int i = 0;
-      boolean useCutOff = false;
-      double cutOff = 0.0;
-      while (args[i].startsWith("-")) {
-        if (args[i].equals("-tags")) {
-          doTags = true;
-          i++;
-        } else if (args[i].equals("-cutOff") && i + 1 < args.length) {
-          useCutOff = true;
-          cutOff = Double.parseDouble(args[i + 1]);
-          i += 2;
-        } else {
-          log.info("Unknown option: " + args[i]);
-          i++;
-        }
-      }
-
-      Treebank treebank = new DiskTreebank(in -> new PennTreeReader(in, new LabeledScoredTreeFactory(new StringLabelFactory()), new BobChrisTreeNormalizer()));
-      treebank.loadPath(args[i]);
-
-      if (useCutOff) {
-        Set<String> splitters = getSplitCategories(treebank, doTags, 0, cutOff, cutOff, null);
-        System.out.println(splitters);
-      } else {
-        ParentAnnotationStats pas = new ParentAnnotationStats(null, doTags);
-        treebank.apply(pas);
-        pas.printStats();
-      }
-    }
-  }
-
-
-  /**
    * Call this method to get a String array of categories to split on.
    * It calculates parent annotation statistics suitable for doing
    * selective parent splitting in the PCFGParser inside
@@ -507,10 +460,7 @@ public class ParentAnnotationStats implements TreeVisitor  {
    * Treebank was available, and the pre-stored list was being used).
    */
   public static Set<String> getEnglishSplitCategories(String treebankRoot) {
-    TreebankLangParserParams tlpParams = new EnglishTreebankParserParams();
-    Treebank trees = tlpParams.memoryTreebank();
-    trees.loadPath(treebankRoot, new NumberRangeFileFilter(200, 2199, true));
-    return getSplitCategories(trees, 300.0, tlpParams.treebankLanguagePack());
+    return null;
   }
 
 }

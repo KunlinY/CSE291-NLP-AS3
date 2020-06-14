@@ -1,6 +1,5 @@
 package edu.berkeley.nlp.assignments.parsing.ling;
 
-import edu.berkeley.nlp.assignments.parsing.process.Morphology;
 
 /**
  *
@@ -91,7 +90,7 @@ public class WordLemmaTagFactory implements LabelFactory {
     int first = labelStr.indexOf(divider);
     int second = labelStr.lastIndexOf(divider);
     if (first == second) {
-      return new WordLemmaTag(labelStr.substring(0, first), Morphology.lemmaStatic(labelStr.substring(0, first), labelStr.substring(first + 1)), labelStr.substring(first + 1));
+      return null;
     } else if (first >= 0) {
       return new WordLemmaTag(labelStr.substring(0, first), labelStr.substring(first + 1, second), labelStr.substring(second + 1));
     } else {

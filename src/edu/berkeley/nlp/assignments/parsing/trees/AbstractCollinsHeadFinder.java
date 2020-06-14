@@ -1,8 +1,5 @@
 package edu.berkeley.nlp.assignments.parsing.trees; 
-import edu.berkeley.nlp.assignments.parsing.util.logging.Redwood;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Map;
 
 /**
@@ -59,9 +56,6 @@ import java.util.Map;
  */
 public abstract class AbstractCollinsHeadFinder implements HeadFinder /* Serializable */, CopulaHeadFinder  {
 
-  /** A logger for this class */
-  private static Redwood.RedwoodChannels log = Redwood.channels(AbstractCollinsHeadFinder.class);
-
   private static final boolean DEBUG = System.getProperty("HeadFinder", null) != null;
   protected final TreebankLanguagePack tlp;
   protected Map<String, String[][]> nonTerminalInfo;
@@ -82,17 +76,7 @@ public abstract class AbstractCollinsHeadFinder implements HeadFinder /* Seriali
   protected String[] defaultLeftRule;
   protected String[] defaultRightRule;
 
-  /**
-   * Construct a HeadFinder.
-   * The TreebankLanguagePack is used to get basic categories. The remaining arguments
-   * set categories which, if it comes to last resort processing (i.e., none of
-   * the rules matched), will be avoided as heads. In last resort processing,
-   * it will attempt to match the leftmost or rightmost constituent not in this
-   * set but will fall back to the left or rightmost constituent if necessary.
-   *
-   * @param tlp TreebankLanguagePack used to determine basic category
-   * @param categoriesToAvoid Constituent types to avoid as head
-   */
+  
   protected AbstractCollinsHeadFinder(TreebankLanguagePack tlp, String... categoriesToAvoid) {
     this.tlp = tlp;
     // automatically build defaultLeftRule, defaultRightRule
@@ -109,21 +93,13 @@ public abstract class AbstractCollinsHeadFinder implements HeadFinder /* Seriali
     }
   }
 
-  /**
-   * Generally will be false, except for SemanticHeadFinder
-   */
+  
   @Override
   public boolean makesCopulaHead() {
     return false;
   }
 
-  /**
-   * A way for subclasses for corpora with explicit head markings
-   * to return the explicitly marked head
-   *
-   * @param t a tree to find the head of
-   * @return the marked head-- null if no marked head
-   */
+  
   // to be overridden in subclasses for corpora
   //
   protected Tree findMarkedHead(Tree t) {
@@ -163,19 +139,11 @@ public abstract class AbstractCollinsHeadFinder implements HeadFinder /* Seriali
     if (t == null || t.isLeaf()) {
       throw new IllegalArgumentException("Can't return head of null or leaf Tree.");
     }
-    if (DEBUG) {
-      log.info("determineHead for " + t.value());
-    }
-
     Tree[] kids = t.children();
 
     Tree theHead;
     // first check if subclass found explicitly marked head
     if ((theHead = findMarkedHead(t)) != null) {
-      if (DEBUG) {
-        log.info("Find marked head method returned " +
-                           theHead.label() + " as head of " + t.label());
-      }
       return theHead;
     }
 
@@ -183,10 +151,6 @@ public abstract class AbstractCollinsHeadFinder implements HeadFinder /* Seriali
     // it used to special case preterminal and ROOT/TOP case
     // but that seemed bad (especially hardcoding string "ROOT")
     if (kids.length == 1) {
-      if (DEBUG) {
-        log.info("Only one child determines " +
-                           kids[0].label() + " as head of " + t.label());
-      }
       return kids[0];
     }
 
@@ -206,11 +170,6 @@ public abstract class AbstractCollinsHeadFinder implements HeadFinder /* Seriali
     if (motherCat.startsWith("@")) {
       motherCat = motherCat.substring(1);
     }
-    if (DEBUG) {
-      log.info("Looking for head of " + t.label() +
-                         "; value is |" + t.label().value() + "|, " +
-                         " baseCat is |" + motherCat + '|');
-    }
     // We know we have nonterminals underneath
     // (a bit of a Penn Treebank assumption, but).
 
@@ -225,25 +184,10 @@ public abstract class AbstractCollinsHeadFinder implements HeadFinder /* Seriali
     String[][] how = nonTerminalInfo.get(motherCat);
     Tree[] kids = t.children();
     if (how == null) {
-      if (DEBUG) {
-        log.info("Warning: No rule found for " + motherCat +
-                           " (first char: " + motherCat.charAt(0) + ')');
-        log.info("Known nonterms are: " + nonTerminalInfo.keySet());
-      }
       if (defaultRule != null) {
-        if (DEBUG) {
-          log.info("  Using defaultRule");
-        }
         return traverseLocate(kids, defaultRule, true);
       } else {
-        // TreePrint because TreeGraphNode only prints the node number,
-        // doesn't print the tree structure
-        TreePrint printer = new TreePrint("penn");
-        StringWriter buffer = new StringWriter();
-        printer.printTree(t, new PrintWriter(buffer));
-        // TODO: we could get really fancy and define our own
-        // exception class to represent this
-        throw new IllegalArgumentException("No head rule defined for " + motherCat + " using " + this.getClass() + " in " + buffer.toString());
+        return null;
       }
     }
     for (int i = 0; i < how.length; i++) {
@@ -252,9 +196,6 @@ public abstract class AbstractCollinsHeadFinder implements HeadFinder /* Seriali
       if (theHead != null) {
         break;
       }
-    }
-    if (DEBUG) {
-      log.info("  Chose " + theHead.label());
     }
     return theHead;
   }
@@ -404,14 +345,7 @@ public abstract class AbstractCollinsHeadFinder implements HeadFinder /* Seriali
     return -1;
   }
 
-  /**
-   * A way for subclasses to fix any heads under special conditions.
-   * The default does nothing.
-   *
-   * @param headIdx       The index of the proposed head
-   * @param daughterTrees The array of daughter trees
-   * @return The new headIndex
-   */
+  
   protected int postOperationFix(int headIdx, Tree[] daughterTrees) {
     return headIdx;
   }
